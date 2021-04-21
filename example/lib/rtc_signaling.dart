@@ -1,13 +1,14 @@
 import 'dart:convert';
 import 'dart:async';
-// import 'dart:html';
+
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
-// import 'package:flutter_webrtc/webrtc.dart';
+
 import 'package:flutter_webrtc/flutter_webrtc.dart';
-// ignore: import_of_legacy_library_into_null_safe
+
 import 'package:web_socket_channel/io.dart';
+
 import 'package:random_string/random_string.dart';
 
 // 信令状态
@@ -122,6 +123,7 @@ class RTCSignaling {
       /*
       * 连接socket注册自己
       * */
+      var operatingSystem;
       _send('new', {
         'name': displayName,
         'id': _selfId,
@@ -180,12 +182,13 @@ class RTCSignaling {
     };
 
     MediaStream stream =
-        await navigator.mediaDevices.getScreenMedia(mediaConstraints);
+        await navigator.mediaDevices.getScreenShareMedia(mediaConstraints);
     this.localScreenStream = stream;
     if (this.onLocalStream != null) {
       this.onLocalStream(stream);
     }
-    print("track长度：$stream.getVideoTracks().length");
+
+    // print("track长度：$stream.getVideoTracks().length");
 
     await myPeerConnection.getSenders().then((senders) {
       senders.forEach((element) {

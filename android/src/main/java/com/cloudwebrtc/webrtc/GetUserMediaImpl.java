@@ -211,6 +211,12 @@ class GetUserMediaImpl {
         this.applicationContext = applicationContext;
     }
 
+    static private void resultError(String method, String error, Result result) {
+        String errorMsg = method + "(): " + error;
+        result.error(method, errorMsg,null);
+        Log.d(TAG, errorMsg);
+    }
+
     /**
      * Includes default constraints set for the audio media type.
      *
@@ -396,7 +402,7 @@ class GetUserMediaImpl {
         // requestedMediaTypes is the empty set, the method invocation fails
         // with a TypeError.
         if (requestPermissions.isEmpty()) {
-            result.error("TypeError", "constraints requests no media types", null);
+            resultError("getUserMedia", "TypeError, constraints requests no media types", result);
             return;
         }
 
@@ -423,7 +429,7 @@ class GetUserMediaImpl {
                         // getUserMedia() algorithm, if the user has denied
                         // permission, fail "with a new DOMException object whose
                         // name attribute has the value NotAllowedError."
-                        result.error("DOMException", "NotAllowedError", null);
+                        resultError("getUserMedia", "DOMException, NotAllowedError", result);
                     }
                 });
     }
@@ -453,7 +459,7 @@ class GetUserMediaImpl {
                         Intent mediaProjectionData = resultData.getParcelable(PROJECTION_DATA);
 
                         if (resultCode != Activity.RESULT_OK) {
-                            result.error(null, "User didn't give permission to capture the screen.", null);
+                            resultError("screenRequestPremissions", "User didn't give permission to capture the screen.", result);
                             return;
                         }
 
@@ -465,13 +471,11 @@ class GetUserMediaImpl {
                                         new MediaProjection.Callback() {
                                             @Override
                                             public void onStop() {
-                                                Log.e(TAG, "User revoked permission to capture the screen.");
-                                                result.error(null, "User revoked permission to capture the screen.", null);
+                                                resultError("MediaProjection.Callback()", "User revoked permission to capture the screen.", result);
                                             }
                                         });
                         if (videoCapturer == null) {
-                            result.error(
-                                    /* type */ "GetDisplayMediaFailed", "Failed to create new VideoCapturer!", null);
+                            resultError("screenRequestPremissions", "GetDisplayMediaFailed, User revoked permission to capture the screen.", result);
                             return;
                         }
 
@@ -573,7 +577,7 @@ class GetUserMediaImpl {
             // specified by
             // https://www.w3.org/TR/mediacapture-streams/#dom-mediadevices-getusermedia
             // with respect to distinguishing the various causes of failure.
-            result.error(/* type */ "GetUserMediaFailed", "Failed to create new track", null);
+            resultError("getUserMedia", "Failed to create new track.", result);
             return;
         }
 
@@ -623,6 +627,7 @@ class GetUserMediaImpl {
         result.success(successResult.toMap());
     }
 
+    private boolean isFacing=true;
     private VideoTrack getUserVideo(ConstraintsMap constraints) {
         ConstraintsMap videoConstraintsMap = null;
         ConstraintsMap videoConstraintsMandatory = null;
@@ -653,7 +658,7 @@ class GetUserMediaImpl {
         }
 
         String facingMode = getFacingMode(videoConstraintsMap);
-        boolean isFacing = facingMode == null || !facingMode.equals("environment");
+        isFacing = facingMode == null || !facingMode.equals("environment");
         String sourceId = getSourceIdConstraint(videoConstraintsMap);
 
         VideoCapturer videoCapturer = createVideoCapturer(cameraEnumerator, isFacing, sourceId);
@@ -753,23 +758,41 @@ class GetUserMediaImpl {
     void switchCamera(String id, Result result) {
         VideoCapturer videoCapturer = mVideoCapturers.get(id);
         if (videoCapturer == null) {
-            result.error(null, "Video capturer not found for id: " + id, null);
+            resultError("switchCamera", "Video capturer not found for id: " + id, result);
             return;
         }
 
-        CameraVideoCapturer cameraVideoCapturer = (CameraVideoCapturer) videoCapturer;
-        cameraVideoCapturer.switchCamera(
-                new CameraVideoCapturer.CameraSwitchHandler() {
-                    @Override
-                    public void onCameraSwitchDone(boolean b) {
-                        result.success(b);
-                    }
+        CameraEnumerator cameraEnumerator;
 
-                    @Override
-                    public void onCameraSwitchError(String s) {
-                        result.error("Switching camera failed", s, null);
-                    }
-                });
+        if (Camera2Enumerator.isSupported(applicationContext)) {
+            Log.d(TAG, "Creating video capturer using Camera2 API.");
+            cameraEnumerator = new Camera2Enumerator(applicationContext);
+        } else {
+            Log.d(TAG, "Creating video capturer using Camera1 API.");
+            cameraEnumerator = new Camera1Enumerator(false);
+        }
+        // if sourceId given, use specified sourceId first
+        final String[] deviceNames = cameraEnumerator.getDeviceNames();
+        for (String name : deviceNames) {
+            if (cameraEnumerator.isFrontFacing(name) == !isFacing) {
+                CameraVideoCapturer cameraVideoCapturer = (CameraVideoCapturer) videoCapturer;
+                cameraVideoCapturer.switchCamera(
+                        new CameraVideoCapturer.CameraSwitchHandler() {
+                            @Override
+                            public void onCameraSwitchDone(boolean b) {
+                                isFacing=!isFacing;
+                                result.success(b);
+                            }
+
+                            @Override
+                            public void onCameraSwitchError(String s) {
+                                resultError("switchCamera", "Switching camera failed: " + id, result);
+                            }
+                        },name);
+                return;
+            }
+        }
+        resultError("switchCamera", "Switching camera failed: " + id, result);
     }
 
     /**
@@ -818,7 +841,7 @@ class GetUserMediaImpl {
     void hasTorch(String trackId, Result result) {
         VideoCapturer videoCapturer = mVideoCapturers.get(trackId);
         if (videoCapturer == null) {
-            result.error(null, "Video capturer not found for id: " + trackId, null);
+            resultError("hasTorch", "Video capturer not found for id: " + trackId, result);
             return;
         }
 
@@ -837,8 +860,7 @@ class GetUserMediaImpl {
                         (CameraDevice) getPrivateProperty(session.getClass(), session, "cameraDevice");
             } catch (NoSuchFieldWithNameException e) {
                 // Most likely the upstream Camera2Capturer class have changed
-                Log.e(TAG, "[TORCH] Failed to get `" + e.fieldName + "` from `" + e.className + "`");
-                result.error(null, "Failed to get `" + e.fieldName + "` from `" + e.className + "`", null);
+                resultError("hasTorch", "[TORCH] Failed to get `" + e.fieldName + "` from `" + e.className + "`", result);
                 return;
             }
 
@@ -866,8 +888,7 @@ class GetUserMediaImpl {
                 camera = (Camera) getPrivateProperty(session.getClass(), session, "camera");
             } catch (NoSuchFieldWithNameException e) {
                 // Most likely the upstream Camera1Capturer class have changed
-                Log.e(TAG, "[TORCH] Failed to get `" + e.fieldName + "` from `" + e.className + "`");
-                result.error(null, "Failed to get `" + e.fieldName + "` from `" + e.className + "`", null);
+                resultError("hasTorch", "[TORCH] Failed to get `" + e.fieldName + "` from `" + e.className + "`", result);
                 return;
             }
 
@@ -879,15 +900,14 @@ class GetUserMediaImpl {
             return;
         }
 
-        Log.e(TAG, "[TORCH] Video capturer not compatible");
-        result.error(null, "Video capturer not compatible", null);
+        resultError("hasTorch", "[TORCH] Video capturer not compatible", result);
     }
 
     @RequiresApi(api = VERSION_CODES.LOLLIPOP)
     void setTorch(String trackId, boolean torch, Result result) {
         VideoCapturer videoCapturer = mVideoCapturers.get(trackId);
         if (videoCapturer == null) {
-            result.error(null, "Video capturer not found for id: " + trackId, null);
+            resultError("setTorch", "Video capturer not found for id: " + trackId, result);
             return;
         }
 
@@ -919,8 +939,7 @@ class GetUserMediaImpl {
                         (Handler) getPrivateProperty(session.getClass(), session, "cameraThreadHandler");
             } catch (NoSuchFieldWithNameException e) {
                 // Most likely the upstream Camera2Capturer class have changed
-                Log.e(TAG, "[TORCH] Failed to get `" + e.fieldName + "` from `" + e.className + "`");
-                result.error(null, "Failed to get `" + e.fieldName + "` from `" + e.className + "`", null);
+                resultError("setTorch", "[TORCH] Failed to get `" + e.fieldName + "` from `" + e.className + "`", result);
                 return;
             }
 
@@ -959,8 +978,7 @@ class GetUserMediaImpl {
                 camera = (Camera) getPrivateProperty(session.getClass(), session, "camera");
             } catch (NoSuchFieldWithNameException e) {
                 // Most likely the upstream Camera1Capturer class have changed
-                Log.e(TAG, "[TORCH] Failed to get `" + e.fieldName + "` from `" + e.className + "`");
-                result.error(null, "Failed to get `" + e.fieldName + "` from `" + e.className + "`", null);
+                resultError("setTorch", "[TORCH] Failed to get `" + e.fieldName + "` from `" + e.className + "`", result);
                 return;
             }
 
@@ -972,9 +990,7 @@ class GetUserMediaImpl {
             result.success(null);
             return;
         }
-
-        Log.e(TAG, "[TORCH] Video capturer not compatible");
-        result.error(null, "Video capturer not compatible", null);
+        resultError("setTorch", "[TORCH] Video capturer not compatible", result);
     }
 
     private Object getPrivateProperty(Class klass, Object object, String fieldName)
