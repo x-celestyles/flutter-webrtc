@@ -1,6 +1,9 @@
 name: webrtc_example
 description: Demonstrates how to use the webrtc plugin.
 version: 1.0.0
+environment:
+  sdk: ">=2.2.2 <3.0.0"
+  flutter: ^1.10.0
 
 dependencies:
   flutter:
@@ -9,7 +12,9 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.0
-
+  web_socket_channel: ^1.1.0
+  random_string: ^1.1.0
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter

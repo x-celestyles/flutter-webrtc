@@ -120,7 +120,13 @@
         NSDictionary* argsMap = call.arguments;
         NSDictionary* constraints = argsMap[@"constraints"];
         [self getDisplayMedia:constraints result:result];
-    } else if ([@"createLocalMediaStream" isEqualToString:call.method]) {
+    } else if ([@"getScreenMedia" isEqualToString:call.method]){
+#pragma mark 屏幕共享
+        NSDictionary* argsMap = call.arguments;
+        NSDictionary* constraints = argsMap[@"constraints"];
+        [self getScreenShareMedia:constraints result:result];
+        result(FlutterMethodNotImplemented);
+    }else if ([@"createLocalMediaStream" isEqualToString:call.method]) {
         [self createLocalMediaStream:result];
     } else if ([@"getSources" isEqualToString:call.method]) {
         [self getSources:result];

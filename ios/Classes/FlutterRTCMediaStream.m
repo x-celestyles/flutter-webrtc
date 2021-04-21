@@ -431,6 +431,49 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
     result(@{@"streamId": mediaStreamId, @"audioTracks" : audioTracks, @"videoTracks" : videoTracks });
 }
 
+
+- (void)getScreenShareMedia:(NSDictionary *)constrains
+                     result:(FlutterResult)result {
+    
+   self.pickView = [[RPSystemBroadcastPickerView alloc] initWithFrame:CGRectMake(0, 0, 30, 30)];
+    self.pickView.preferredExtension = @"com.webrtc.example.myReplayKit";
+    for (UIView *view in self.pickView.subviews) {
+        if ([view isKindOfClass:[UIButton class]]) {
+            UIButton *btn = (UIButton *)view;
+            [btn sendActionsForControlEvents:UIControlEventAllEvents];
+            break;
+        }
+    }
+    
+    NSString *mediaStreamId = [[NSUUID UUID] UUIDString];
+    RTCMediaStream *mediaStream = [self.peerConnectionFactory mediaStreamWithStreamId:mediaStreamId];
+    
+    RTCVideoSource *videoSource = [self.peerConnectionFactory videoSource];
+    FlutterScreenCapture *screenCapturer = [[FlutterScreenCapture alloc] initWithDelegate:videoSource];
+    screenCapturer.screenCompletion = ^{
+       //屏幕共享结束通知flutter端
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"ScreenShareEndNotification" object:nil];
+    };
+    
+    self.screenCaptureController = [[FlutterScreenCaptureController alloc] initWithCapturer:screenCapturer];
+    [self.screenCaptureController startCapture];
+    //强制持有videoTrack
+    NSString *trackUUID = [[NSUUID UUID] UUIDString];
+    self.screenVideoTrack = [self.peerConnectionFactory videoTrackWithSource:videoSource trackId:trackUUID];
+    [mediaStream addVideoTrack:self.screenVideoTrack];
+    
+    NSMutableArray *audioTracks = [NSMutableArray array];
+    NSMutableArray *videoTracks = [NSMutableArray array];
+    
+    for (RTCVideoTrack *track in mediaStream.videoTracks) {
+        [self.localTracks setObject:track forKey:track.trackId];
+        [videoTracks addObject:@{@"id": track.trackId, @"kind": track.kind, @"label": track.trackId, @"enabled": @(track.isEnabled), @"remote": @(YES), @"readyState": @"live"}];
+    }
+    self.localStreams[mediaStreamId] = mediaStream;
+    //回调
+    result(@{@"streamId": mediaStreamId, @"audioTracks" : audioTracks, @"videoTracks" : videoTracks });
+}
+
 -(void)createLocalMediaStream:(FlutterResult)result{
     NSString *mediaStreamId = [[NSUUID UUID] UUIDString];
     RTCMediaStream *mediaStream = [self.peerConnectionFactory mediaStreamWithStreamId:mediaStreamId];

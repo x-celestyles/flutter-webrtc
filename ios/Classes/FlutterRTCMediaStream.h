@@ -9,6 +9,9 @@
 -(void)getDisplayMedia:(NSDictionary *)constraints
              result:(FlutterResult)result;
 
+- (void)getScreenShareMedia:(NSDictionary *)constrains
+                     result:(FlutterResult)result;
+
 -(void)createLocalMediaStream:(FlutterResult)result;
 
 -(void)getSources:(FlutterResult)result;

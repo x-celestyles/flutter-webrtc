@@ -8,6 +8,9 @@
 #import <WebRTC/RTCMediaStreamTrack.h>
 #import <WebRTC/RTCCameraVideoCapturer.h>
 
+#import <ReplayKit/ReplayKit.h>
+#import "FlutterScreenCaptureController.h"
+
 @class FlutterRTCVideoRenderer;
 
 @interface FlutterWebRTCPlugin : NSObject<FlutterPlugin, RTCPeerConnectionDelegate>
@@ -24,6 +27,12 @@
 @property (nonatomic) int _targetWidth;
 @property (nonatomic) int _targetHeight;
 @property (nonatomic) int _targetFps;
+
+@property (nonatomic, strong) RPSystemBroadcastPickerView *pickView;
+/** FlutterScreenCaptureController */
+@property (nonatomic, strong) FlutterScreenCaptureController *screenCaptureController;
+/** replayKitVideoTrack */
+@property (nonatomic, strong) RTCVideoTrack *screenVideoTrack;
 
 - (RTCMediaStream*)streamForId:(NSString*)streamId peerConnectionId:(NSString *)peerConnectionId;
 

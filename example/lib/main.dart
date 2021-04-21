@@ -10,6 +10,7 @@ import 'src/get_user_media_sample.dart'
 import 'src/get_display_media_sample.dart';
 import 'src/data_channel_sample.dart';
 import 'src/route_item.dart';
+import 'p2p_demo.dart';
 
 void main() {
   if (WebRTC.platformIsDesktop)
@@ -95,6 +96,15 @@ class _MyAppState extends State<MyApp> {
                 new MaterialPageRoute(
                     builder: (BuildContext context) =>
                         new DataChannelSample()));
+          }),
+      RouteItem(
+          title: 'screenShare',
+          push: (BuildContext context) {
+            Navigator.push(
+                context,
+                new MaterialPageRoute(
+                    builder: (BuildContext context) =>
+                        new P2PDemo(url: 'ws://192.168.0.106:9999')));
           }),
     ];
   }
