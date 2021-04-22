@@ -54,7 +54,7 @@ NSString* const kRTCAppGroupIdentifier = @"RTCAppGroupIdentifier";
 
 - (NSString *)appGroupIdentifier {
 
-    return @"group.yeas.com";
+    return @"group.yeasmeeting.com";
 }
 
 - (NSString *)filePathForApplicationGroupIdentifier:(nonnull NSString *)identifier {
