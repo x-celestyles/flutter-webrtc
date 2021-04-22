@@ -436,7 +436,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
                      result:(FlutterResult)result {
     
    self.pickView = [[RPSystemBroadcastPickerView alloc] initWithFrame:CGRectMake(0, 0, 30, 30)];
-    self.pickView.preferredExtension = @"com.webrtc.cn.YeasScreenShare";
+    self.pickView.preferredExtension = @"com.faphzoom.yeas.YeasScreenShare";
     for (UIView *view in self.pickView.subviews) {
         if ([view isKindOfClass:[UIButton class]]) {
             UIButton *btn = (UIButton *)view;
