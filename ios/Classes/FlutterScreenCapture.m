@@ -252,15 +252,19 @@ const CGFloat kScrMaximumSupportedResolution = 640;
     switch (eventCode) {
         case NSStreamEventOpenCompleted:
             //通知flutter端屏幕共享开始
+        {
             [[NSNotificationCenter defaultCenter] postNotificationName:@"ScreenShareBeginNotification" object:nil];
+        }
             break;
         case NSStreamEventHasBytesAvailable:
             [self readBytesFromStream: (NSInputStream *)aStream];
             break;
         case NSStreamEventEndEncountered:
             //通知flutter端屏幕共享结束
+        {
             [[NSNotificationCenter defaultCenter] postNotificationName:@"ScreenShareEndNotification" object:nil];
             [self stopCapture];
+        }
             break;
         case NSStreamEventErrorOccurred:
             NSLog(@"server stream error encountered: %@", aStream.streamError.localizedDescription);

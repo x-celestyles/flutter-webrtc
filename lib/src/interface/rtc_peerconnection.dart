@@ -27,6 +27,10 @@ typedef RemoveTrackCallback = void Function(
     MediaStream stream, MediaStreamTrack track);
 typedef RTCDataChannelCallback = void Function(RTCDataChannel channel);
 typedef RenegotiationNeededCallback = void Function();
+//屏幕共享开启的回调
+typedef BeginScreenShareCallBack = void Function();
+//屏幕共享结束的回调
+typedef FinishscreenShareCallBack = void Function();
 
 /// Unified-Plan
 typedef UnifiedPlanTrackCallback = void Function(RTCTrackEvent event);
@@ -46,6 +50,8 @@ abstract class RTCPeerConnection {
   RemoveTrackCallback? onRemoveTrack;
   RTCDataChannelCallback? onDataChannel;
   RenegotiationNeededCallback? onRenegotiationNeeded;
+  BeginScreenShareCallBack? onBeginScreenShare;
+  FinishscreenShareCallBack? onFinishScreenShare;
 
   /// Unified-Plan
   UnifiedPlanTrackCallback? onTrack;

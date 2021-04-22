@@ -475,6 +475,13 @@ class RTCSignaling {
       if (this.onAddRemoteStream != null) this.onAddRemoteStream(stream);
     };
 
+    pc.onBeginScreenShare = () {
+      print('开始flutter屏幕共享');
+    };
+    pc.onFinishScreenShare = () {
+      print('屏幕flutter共享结束');
+    };
+
     /*
     * 移除远端的媒体流
     * */

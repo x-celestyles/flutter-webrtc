@@ -181,6 +181,14 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
             transceiver: transceiver));
         break;
 
+      case 'ScreenShareEndNotification':
+        onFinishScreenShare?.call();
+        break;
+
+      case 'ScreenShareBeginNotification':
+        onBeginScreenShare?.call();
+        break;
+
       /// Other
       case 'onSelectedCandidatePairChanged':
 

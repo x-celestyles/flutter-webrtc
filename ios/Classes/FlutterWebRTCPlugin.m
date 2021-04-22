@@ -22,6 +22,7 @@
     id _messenger;
     id _textures;
     BOOL _speakerOn;
+    NSString *_myPeerConnectionId;
 }
 
 @synthesize messenger = _messenger;
@@ -77,11 +78,35 @@
     self.localStreams = [NSMutableDictionary new];
     self.localTracks = [NSMutableDictionary new];
     self.renders = [[NSMutableDictionary alloc] init];
+    [self addScreenNotification];
+    return self;
+}
+
+//添加通知
+- (void)addScreenNotification {
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(screenEnd) name:@"ScreenShareEndNotification" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(screenBegin) name:@"ScreenShareBeginNotification" object:nil];
 #if TARGET_OS_IPHONE
     //路线改变通知（扬声器改成耳机，或者耳机改成扬声器）
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didSessionRouteChange:) name:AVAudioSessionRouteChangeNotification object:nil];
 #endif
-    return self;
+}
+
+- (void)screenEnd {
+    RTCPeerConnection *peerConnection = self.peerConnections[_myPeerConnectionId];
+    FlutterEventSink eventSink = peerConnection.eventSink;
+    if(eventSink){
+        eventSink(@{@"event" : @"ScreenShareEndNotification"});
+    }
+}
+
+- (void)screenBegin {
+    RTCPeerConnection *peerConnection = self.peerConnections[_myPeerConnectionId];
+    FlutterEventSink eventSink = peerConnection.eventSink;
+    if(eventSink){
+        eventSink(@{@"event" : @"ScreenShareBeginNotification"});
+    }
 }
 
 //路线通知
@@ -111,7 +136,7 @@
         NSDictionary* argsMap = call.arguments;
         NSDictionary* configuration = argsMap[@"configuration"];
         NSDictionary* constraints = argsMap[@"constraints"];
-        
+        NSLog(@"创建peerconnection");
         RTCPeerConnection *peerConnection = [self.peerConnectionFactory
                                              peerConnectionWithConfiguration:[self RTCConfiguration:configuration]
                                              constraints:[self parseMediaConstraints:constraints]
@@ -122,6 +147,7 @@
         peerConnection.dataChannels = [NSMutableDictionary new];
         
         NSString *peerConnectionId = [[NSUUID UUID] UUIDString];
+        _myPeerConnectionId = peerConnectionId;
         peerConnection.flutterId  = peerConnectionId;
         
         /*Create Event Channel.*/
@@ -957,6 +983,8 @@
     }
     [_peerConnections removeAllObjects];
     _peerConnectionFactory = nil;
+    
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 
