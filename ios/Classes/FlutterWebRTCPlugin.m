@@ -60,6 +60,7 @@
         _textures = textures;
         _messenger = messenger;
         _speakerOn = NO;
+        _notification = [[FlutterNotificationCenter alloc] init];
 #if TARGET_OS_IPHONE
         self.viewController = viewController;
 #endif
@@ -150,7 +151,11 @@
         NSDictionary* constraints = argsMap[@"constraints"];
         [self getScreenShareMedia:constraints result:result];
         result(FlutterMethodNotImplemented);
-    }else if ([@"createLocalMediaStream" isEqualToString:call.method]) {
+    } else if ([@"closeScreenShareMedia" isEqualToString:call.method]) {
+        NSLog(@"接收到关闭共享的通知");
+        //结束屏幕共享的通知
+        [_notification postNotificationWithName:@"iOS_FinishBroadcast"];
+    } else if ([@"createLocalMediaStream" isEqualToString:call.method]) {
         [self createLocalMediaStream:result];
     } else if ([@"getSources" isEqualToString:call.method]) {
         [self getSources:result];

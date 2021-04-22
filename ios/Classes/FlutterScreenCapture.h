@@ -9,8 +9,6 @@
 #import <AVFoundation/AVFoundation.h>
 
 
-typedef void(^screenCompletion)(void);
-
 NS_ASSUME_NONNULL_BEGIN
 
 @class FlutterSocketConnection;
@@ -22,9 +20,6 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)startCaptureWithConnection:(nonnull FlutterSocketConnection *)connection;
 
 - (void)stopCapture;
-
-/** screenCompletion */
-@property (nonatomic, copy) screenCompletion screenCompletion;
 
 @end
 

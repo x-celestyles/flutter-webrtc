@@ -32,6 +32,7 @@
 - (void)broadcastStartedWithSetupInfo:(NSDictionary<NSString *,NSObject *> *)setupInfo {
     
     __weak typeof(self) weakSelf = self;
+    //注册结束共享的通知
     [[YeasNotificationCenter sharedInstance] registNotificationWithName:kFinishBroadcastNotification];
     [YeasNotificationCenter sharedInstance].NotificationAnswer = ^(DarwinNotificationCenterState state) {
         [weakSelf handleWithState:state];
@@ -74,7 +75,10 @@
 - (void)handleWithState:(DarwinNotificationCenterState)stata {
     switch (stata) {
         case FinishScreenShare:
-            [self finishBroadcastWithError:[NSError errorWithDomain:NSCocoaErrorDomain code:0 userInfo:nil]];
+        {
+            NSDictionary *userInfo = @{NSLocalizedFailureReasonErrorKey:@"屏幕共享已结束"};
+            [self finishBroadcastWithError:[NSError errorWithDomain:NSStringFromClass([self class]) code:0 userInfo:userInfo]];
+        }
             break;
         default:
             break;

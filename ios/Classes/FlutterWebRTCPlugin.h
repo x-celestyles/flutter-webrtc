@@ -10,6 +10,7 @@
 
 #import <ReplayKit/ReplayKit.h>
 #import "FlutterScreenCaptureController.h"
+#import "FlutterNotificationCenter.h"
 
 @class FlutterRTCVideoRenderer;
 
@@ -33,6 +34,8 @@
 @property (nonatomic, strong) FlutterScreenCaptureController *screenCaptureController;
 /** replayKitVideoTrack */
 @property (nonatomic, strong) RTCVideoTrack *screenVideoTrack;
+/** FlutterNotificationCenter */
+@property (nonatomic, strong) FlutterNotificationCenter *notification;
 
 - (RTCMediaStream*)streamForId:(NSString*)streamId peerConnectionId:(NSString *)peerConnectionId;
 

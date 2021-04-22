@@ -145,9 +145,6 @@ const CGFloat kScrMaximumSupportedResolution = 640;
 
 - (void)stopCapture {
     [self.connection close];
-    if (self.screenCompletion) {
-        self.screenCompletion();
-    }
 }
 
 // MARK: Private Methods
@@ -254,13 +251,15 @@ const CGFloat kScrMaximumSupportedResolution = 640;
 - (void)stream:(NSStream *)aStream handleEvent:(NSStreamEvent)eventCode {
     switch (eventCode) {
         case NSStreamEventOpenCompleted:
-            NSLog(@"server stream open completed");
+            //通知flutter端屏幕共享开始
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"ScreenShareBeginNotification" object:nil];
             break;
         case NSStreamEventHasBytesAvailable:
             [self readBytesFromStream: (NSInputStream *)aStream];
             break;
         case NSStreamEventEndEncountered:
-            NSLog(@"server stream end encountered");
+            //通知flutter端屏幕共享结束
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"ScreenShareEndNotification" object:nil];
             [self stopCapture];
             break;
         case NSStreamEventErrorOccurred:

@@ -88,6 +88,20 @@ class MediaDevicesWeb extends MediaDevices {
   }
 
   @override
+  Future<void> closeScreenShareMedia() async {
+    // try {
+    //   final mediaDevices = html.window.navigator.mediaDevices;
+    //   if (mediaDevices == null) throw Exception('MediaDevices is null');
+
+    //   if (jsutil.hasProperty(mediaDevices, 'closeScreenShareMedia')) {
+    //     jsutil.callMethod('closeScreenShareMedia');
+    //   }
+    // } catch (e) {
+    //   throw 'Unable to getDisplayMedia: ${e.toString()}';
+    // }
+  }
+
+  @override
   Future<List<MediaDeviceInfo>> enumerateDevices() async {
     final devices = await getSources();
 

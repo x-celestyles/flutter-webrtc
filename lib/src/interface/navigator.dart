@@ -12,6 +12,9 @@ abstract class Navigator {
   Future<MediaStream> getScreenShareMedia(
       Map<String, dynamic> mediaConstraints);
 
+  @Deprecated('use mediadevice.closeScreenShareMedia() instead')
+  Future<void> closeScreenShareMedia();
+
   @Deprecated('use mediadevice.enumerateDevices() instead')
   Future<List<dynamic>> getSources();
 

@@ -8,6 +8,7 @@
 #import "FlutterCaptureController.h"
 
 @implementation FlutterCaptureController
+
 - (void)startCapture {
     
 }

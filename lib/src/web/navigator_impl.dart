@@ -27,4 +27,9 @@ class NavigatorWeb extends Navigator {
 
   @override
   MediaDevices get mediaDevices => MediaDevicesWeb();
+
+  @override
+  Future<void> closeScreenShareMedia() async {
+    mediaDevices.closeScreenShareMedia();
+  }
 }

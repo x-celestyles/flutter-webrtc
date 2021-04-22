@@ -16,6 +16,11 @@ class NavigatorNative extends Navigator {
   }
 
   @override
+  Future<void> closeScreenShareMedia() async {
+    mediaDevices.closeScreenShareMedia();
+  }
+
+  @override
   Future<List> getSources() {
     return mediaDevices.enumerateDevices();
   }

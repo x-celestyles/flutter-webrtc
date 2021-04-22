@@ -450,10 +450,6 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
     
     RTCVideoSource *videoSource = [self.peerConnectionFactory videoSource];
     FlutterScreenCapture *screenCapturer = [[FlutterScreenCapture alloc] initWithDelegate:videoSource];
-    screenCapturer.screenCompletion = ^{
-       //屏幕共享结束通知flutter端
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"ScreenShareEndNotification" object:nil];
-    };
     
     self.screenCaptureController = [[FlutterScreenCaptureController alloc] initWithCapturer:screenCapturer];
     [self.screenCaptureController startCapture];

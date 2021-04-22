@@ -73,6 +73,16 @@ class MediaDeviceNative extends MediaDevices {
   }
 
   @override
+  Future<void> closeScreenShareMedia() async {
+    var channel = WebRTC.methodChannel();
+    try {
+      channel.invokeMethod('closeScreenShareMedia');
+    } on PlatformException catch (e) {
+      throw 'Unable to closeScreenShareMedia: ${e.message}';
+    }
+  }
+
+  @override
   Future<List<dynamic>> getSources() async {
     try {
       final response = await WebRTC.invokeMethod(

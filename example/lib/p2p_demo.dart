@@ -163,9 +163,10 @@ class _P2PDemoState extends State<P2PDemo> {
   // 挂断
   // ignore: always_declare_return_types
   _hangUp() {
-    if (_rtcSignaling != null) {
-      _rtcSignaling.bye();
-    }
+    _rtcSignaling.closeScreenShare();
+    // if (_rtcSignaling != null) {
+    //   _rtcSignaling.bye();
+    // }
   }
 
   // 切换成屏幕共享

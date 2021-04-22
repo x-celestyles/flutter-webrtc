@@ -180,16 +180,12 @@ class RTCSignaling {
         'optional': [],
       }
     };
-
     MediaStream stream =
         await navigator.mediaDevices.getScreenShareMedia(mediaConstraints);
     this.localScreenStream = stream;
     if (this.onLocalStream != null) {
       this.onLocalStream(stream);
     }
-
-    // print("track长度：$stream.getVideoTracks().length");
-
     await myPeerConnection.getSenders().then((senders) {
       senders.forEach((element) {
         if (element.track!.kind == 'video') {
@@ -197,8 +193,14 @@ class RTCSignaling {
         }
       });
     });
-
     return stream;
+  }
+
+/*
+*关闭屏幕共享
+**/
+  Future<void> closeScreenShare() async {
+    navigator.mediaDevices.closeScreenShareMedia();
   }
 
   /*

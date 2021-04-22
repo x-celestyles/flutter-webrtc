@@ -23,6 +23,12 @@ class MediaDevices {
   }
 
   @Deprecated(
+      'Use the navigator.mediaDevices.closeScreenShareMedia(Map<String, dynamic>) provide from the facrory instead')
+  static Future<void> closeScreenShareMedia() async {
+    navigator.mediaDevices.closeScreenShareMedia();
+  }
+
+  @Deprecated(
       'Use the navigator.mediaDevices.getSources() provide from the facrory instead')
   static Future<List<dynamic>> getSources() {
     return navigator.mediaDevices.getSources();

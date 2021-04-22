@@ -41,14 +41,35 @@
                                        eventChannelWithName:[NSString stringWithFormat:@"FlutterWebRTC/Texture%lld", _textureId]
                                        binaryMessenger:messenger];
         [_eventChannel setStreamHandler:self];
+        [self addScreenNotification];
     }
     return self;
+}
+
+//通知flutter屏幕共享开始和结束的状态
+- (void)addScreenNotification {
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(screenEnd) name:@"ScreenShareEndNotification" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(screenBegin) name:@"ScreenShareBeginNotification" object:nil];
+}
+
+- (void)screenEnd {
+    if(self.eventSink){
+        self.eventSink(@{@"event" : @"ScreenShareEndNotification"});
+    }
+}
+
+- (void)screenBegin {
+    if(self.eventSink){
+        self.eventSink(@{@"event" : @"ScreenShareBeginNotification"});
+    }
 }
 
 -(void)dealloc {
     if(_pixelBufferRef){
         CVBufferRelease(_pixelBufferRef);
     }
+    
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 - (CVPixelBufferRef)copyPixelBuffer {
@@ -239,6 +260,7 @@
         _frameSize = size;
     }
 }
+
 
 #pragma mark - FlutterStreamHandler methods
 

@@ -1,31 +1,14 @@
 //
-//  YeasNotificationCenter.m
-//  myReplayKit
+//  FlutterNotificationCenter.m
+//  flutter_webrtc
 //
-//  Created by  on 2021/4/20.
+//  Created by  on 2021/4/22.
 //
 
-#import "YeasNotificationCenter.h"
+#import "FlutterNotificationCenter.h"
 
-//共享已开启
-NSNotificationName const kBroadcastStartedNotification = @"iOS_BroadcastStarted";
-//共享已暂停
-NSNotificationName const kBroadcastStoppedNotification = @"iOS_BroadcastStopped";
-//结束共享
-NSNotificationName const kFinishBroadcastNotification = @"iOS_FinishBroadcast";
-
-@implementation YeasNotificationCenter{
+@implementation FlutterNotificationCenter{
     CFNotificationCenterRef _notificationCenter;
-}
-
-+ (instancetype)sharedInstance {
-    static YeasNotificationCenter *sharedInstance = nil;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        sharedInstance = [[self alloc] init];
-    });
-    
-    return sharedInstance;
 }
 
 - (instancetype)init {
@@ -45,7 +28,7 @@ NSNotificationName const kFinishBroadcastNotification = @"iOS_FinishBroadcast";
     CFStringRef str = (__bridge CFStringRef)name;
     CFNotificationCenterAddObserver(_notificationCenter,
                                     (__bridge const void *)(self),
-                                    MyHoleNotificationCallback,
+                                    FlutterNotificationCallback,
                                     str,
                                     NULL,
                                     CFNotificationSuspensionBehaviorDeliverImmediately);
@@ -61,20 +44,19 @@ NSNotificationName const kFinishBroadcastNotification = @"iOS_FinishBroadcast";
 }
 
 
-void MyHoleNotificationCallback(CFNotificationCenterRef center,
+void FlutterNotificationCallback(CFNotificationCenterRef center,
                                 void * observer,
                                 CFStringRef name,
                                 void const * object,
                                 CFDictionaryRef userInfo) {
     
-    NSString *identifier = (__bridge NSString *)name;
-    YeasNotificationCenter *noti = (__bridge YeasNotificationCenter *)observer;
-    if (noti.NotificationAnswer) {
-        if ([identifier isEqualToString:kFinishBroadcastNotification]) {
-            noti.NotificationAnswer(FinishScreenShare);
-        }
-    }
+//    NSString *identifier = (__bridge NSString *)name;
+//    YeasNotificationCenter *noti = (__bridge YeasNotificationCenter *)observer;
+//    if (noti.NotificationAnswer) {
+//        if ([identifier isEqualToString:kFinishBroadcastNotification]) {
+//            noti.NotificationAnswer(FinishScreenShare);
+//        }
+//    }
 }
-
 
 @end
