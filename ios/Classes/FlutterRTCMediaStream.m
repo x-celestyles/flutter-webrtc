@@ -7,6 +7,8 @@
 #import "FlutterRTCPeerConnection.h"
 #import "FlutterRPScreenRecorder.h"
 
+#define kIsEmptyString(str) (str == nil || [str isKindOfClass:[NSNull class]] || ([str isKindOfClass:[NSString class]] && str.length == 0))
+
 @implementation AVCaptureDevice (Flutter)
 
 - (NSString*)positionString {
@@ -431,12 +433,26 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
     result(@{@"streamId": mediaStreamId, @"audioTracks" : audioTracks, @"videoTracks" : videoTracks });
 }
 
+- (BOOL)isStringEmpty:(NSString *)str {
+    
+    if (str == nil || [str isKindOfClass:[NSNull class]] || ([str isKindOfClass:[NSString class]] && str.length == 0)) {
+        return  YES;
+    } else {
+        return  NO;
+    }
+}
 
 - (void)getScreenShareMedia:(NSDictionary *)constrains
                      result:(FlutterResult)result {
     
+
+    NSString *preferredExtension = [NSString stringWithFormat:@"%@",constrains[@"preferredExtension"]];
+    NSString *appGroupId = [NSString stringWithFormat:@"%@",constrains[@"appGroupId"]];
+   
+    NSAssert(!kIsEmptyString(preferredExtension) || !kIsEmptyString(appGroupId), @"error:preferredExtension和appGroupId必须传参");
+    
    self.pickView = [[RPSystemBroadcastPickerView alloc] initWithFrame:CGRectMake(0, 0, 30, 30)];
-    self.pickView.preferredExtension = @"com.faphzoom.yeas.YeasScreenShare";
+    self.pickView.preferredExtension = preferredExtension;
     for (UIView *view in self.pickView.subviews) {
         if ([view isKindOfClass:[UIButton class]]) {
             UIButton *btn = (UIButton *)view;
@@ -452,6 +468,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
     FlutterScreenCapture *screenCapturer = [[FlutterScreenCapture alloc] initWithDelegate:videoSource];
     
     self.screenCaptureController = [[FlutterScreenCaptureController alloc] initWithCapturer:screenCapturer];
+    self.screenCaptureController.appGroupId = appGroupId;
     [self.screenCaptureController startCapture];
     //强制持有videoTrack
     NSString *trackUUID = [[NSUUID UUID] UUIDString];

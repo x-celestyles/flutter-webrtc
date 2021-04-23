@@ -136,7 +136,8 @@
         NSDictionary* argsMap = call.arguments;
         NSDictionary* configuration = argsMap[@"configuration"];
         NSDictionary* constraints = argsMap[@"constraints"];
-        NSLog(@"创建peerconnection");
+        //判断是不是自己的peerConnection
+        NSString *isMine = [NSString stringWithFormat:@"%@",constraints[@"isMine"]];
         RTCPeerConnection *peerConnection = [self.peerConnectionFactory
                                              peerConnectionWithConfiguration:[self RTCConfiguration:configuration]
                                              constraints:[self parseMediaConstraints:constraints]
@@ -147,7 +148,10 @@
         peerConnection.dataChannels = [NSMutableDictionary new];
         
         NSString *peerConnectionId = [[NSUUID UUID] UUIDString];
-        _myPeerConnectionId = peerConnectionId;
+        if ([isMine isEqualToString:@"1"]) {
+            //如果是自己的peerconnection则设置自己的peerconnetionid
+            _myPeerConnectionId = peerConnectionId;
+        }
         peerConnection.flutterId  = peerConnectionId;
         
         /*Create Event Channel.*/
@@ -178,7 +182,6 @@
         [self getScreenShareMedia:constraints result:result];
         result(FlutterMethodNotImplemented);
     } else if ([@"closeScreenShareMedia" isEqualToString:call.method]) {
-        NSLog(@"接收到关闭共享的通知");
         //结束屏幕共享的通知
         [_notification postNotificationWithName:@"iOS_FinishBroadcast"];
     } else if ([@"createLocalMediaStream" isEqualToString:call.method]) {
@@ -982,6 +985,7 @@
         [peerConnection close];
     }
     [_peerConnections removeAllObjects];
+    _myPeerConnectionId = nil;
     _peerConnectionFactory = nil;
     
     [[NSNotificationCenter defaultCenter] removeObserver:self];

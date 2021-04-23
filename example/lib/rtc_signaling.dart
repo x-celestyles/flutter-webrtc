@@ -171,14 +171,15 @@ class RTCSignaling {
       'audio': true,
       'video': {
         'mandatory': {
-          'minWidth':
-              '640', // Provide your own width, height and frame rate here
+          'minWidth': '640',
           'minHeight': '480',
           'minFrameRate': '30',
         },
         'facingMode': 'user',
         'optional': [],
-      }
+      },
+      'preferredExtension': 'com.webrtc.cn.YeasScreenShare',
+      'appGroupId': 'group.yeas.com'
     };
     MediaStream stream =
         await navigator.mediaDevices.getScreenShareMedia(mediaConstraints);
@@ -247,6 +248,13 @@ class RTCSignaling {
       _peerConnections[peer_id] = pc;
       //
       _createOffer(peer_id, pc);
+
+      pc.onBeginScreenShare = () {
+        print('开始flutter111屏幕共享');
+      };
+      pc.onFinishScreenShare = () {
+        print('屏幕flutter111共享结束');
+      };
     });
   }
 
@@ -315,10 +323,16 @@ class RTCSignaling {
             this.onStateChange(SignalingState.CallStateNew);
           }
           /*
-          * 收到远端offer后 创建本地的peerconnection
+          * 收到远端offer后 创建自己的peerconnection
           * 之后设置远端的媒体信息,并向对端发送answer进行应答
           * */
           _createPeerConnection(id).then((pc) {
+            pc.onBeginScreenShare = () {
+              print('开始flutter屏幕共享');
+            };
+            pc.onFinishScreenShare = () {
+              print('屏幕flutter共享结束');
+            };
             _peerConnections[id] = pc;
             pc.setRemoteDescription(
                 RTCSessionDescription(description['sdp'], description['type']));
@@ -473,13 +487,6 @@ class RTCSignaling {
     * */
     pc.onAddStream = (stream) {
       if (this.onAddRemoteStream != null) this.onAddRemoteStream(stream);
-    };
-
-    pc.onBeginScreenShare = () {
-      print('开始flutter屏幕共享');
-    };
-    pc.onFinishScreenShare = () {
-      print('屏幕flutter共享结束');
     };
 
     /*

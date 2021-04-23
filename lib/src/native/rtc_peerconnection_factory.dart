@@ -7,6 +7,7 @@ import '../interface/rtc_peerconnection.dart';
 import '../interface/rtc_video_renderer.dart';
 import 'factory_impl.dart';
 
+//在constraints字段中添加‘isMine’代表创建的是不是自己的peerConnection，字符串类型，1-是，0-不是，不传isMine则不是自己的peerconnection
 Future<RTCPeerConnection> createPeerConnection(
     Map<String, dynamic> configuration,
     [Map<String, dynamic> constraints = const {}]) async {

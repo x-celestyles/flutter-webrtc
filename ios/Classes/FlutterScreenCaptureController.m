@@ -9,7 +9,6 @@
 #import "FlutterSocketConnection.h"
 
 NSString* const kRTCScreensharingSocketFD = @"rtc_SSFD";
-NSString* const kRTCAppGroupIdentifier = @"RTCAppGroupIdentifier";
 
 @interface FlutterScreenCaptureController ()
 
@@ -54,7 +53,8 @@ NSString* const kRTCAppGroupIdentifier = @"RTCAppGroupIdentifier";
 
 - (NSString *)appGroupIdentifier {
 
-    return @"group.yeasmeeting.com";
+//    return @"group.yeas.com";
+    return self.appGroupId;
 }
 
 - (NSString *)filePathForApplicationGroupIdentifier:(nonnull NSString *)identifier {

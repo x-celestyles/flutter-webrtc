@@ -103,7 +103,7 @@ abstract class MediaDevices {
   ///  MediaStream Recording API or transmitted as part of a WebRTC session.
   Future<MediaStream> getDisplayMedia(Map<String, dynamic> mediaConstraints);
 
-  //iOS12以后开启屏幕共享
+  //iOS12以后开启屏幕共享:必须传参preferredExtension和appGroupId
   Future<MediaStream> getScreenShareMedia(
       Map<String, dynamic> mediaConstraints);
 

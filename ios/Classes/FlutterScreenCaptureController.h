@@ -11,12 +11,13 @@
 NS_ASSUME_NONNULL_BEGIN
 
 extern NSString* const kRTCScreensharingSocketFD;
-extern NSString* const kRTCAppGroupIdentifier;
+
 
 
 
 @interface FlutterScreenCaptureController : FlutterCaptureController
-
+/** appgroupId */
+@property (nonatomic, strong) NSString *appGroupId;
 @property (nonatomic, retain) FlutterScreenCapture *capturer;
 - (instancetype)initWithCapturer:(nonnull FlutterScreenCapture *)capturer;
 - (void)startCapture;
