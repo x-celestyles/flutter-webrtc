@@ -83,6 +83,7 @@ class RTCSignaling {
     'optional': [
       {'DtlsSrtpKeyAgreement': true},
     ],
+    'isMine': '1'
   };
 
   /*
@@ -164,7 +165,7 @@ class RTCSignaling {
   }
 
   /*
-  * 创建屏幕共享媒体
+  * 创建屏幕共享媒体，必须添加preferredExtension和appGroupId字段
   * */
   Future<MediaStream> screenShareStream() async {
     final Map<String, dynamic> mediaConstraints = {
@@ -250,10 +251,12 @@ class RTCSignaling {
       _createOffer(peer_id, pc);
 
       pc.onBeginScreenShare = () {
-        print('开始flutter111屏幕共享');
+        //关闭本地的摄像
+        localStream.dispose();
       };
       pc.onFinishScreenShare = () {
-        print('屏幕flutter111共享结束');
+        //重新开启本地拍摄
+        createStream();
       };
     });
   }
@@ -452,9 +455,6 @@ class RTCSignaling {
   * */
   Future<RTCPeerConnection> _createPeerConnection(id) async {
     //获取本地媒体 并赋值给peerconnection
-
-    //localStream = await createStream();
-    // localScreenStream = await screenShareStream();
     RTCPeerConnection pc = await createPeerConnection(_iceServers, _config);
     myPeerConnection = pc;
 

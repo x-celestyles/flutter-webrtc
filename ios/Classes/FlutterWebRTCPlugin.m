@@ -314,7 +314,7 @@
         if(peerConnection) {
    
              RTCRtpSender* audioSender = nil ;
-            for( RTCRtpSender *rtpSender in peerConnection.senders){
+            for(RTCRtpSender *rtpSender in peerConnection.senders){
                 if([[[rtpSender track] kind] isEqualToString:@"audio"]) {
                     audioSender = rtpSender;
                 }

@@ -3,6 +3,7 @@ import 'dart:io';
 class MyClient {
   late WebSocket _socket;
 
+  // ignore: sort_constructors_first
   MyClient(WebSocket ws) {
     _socket = ws;
     _socket.listen(messageHandler,
