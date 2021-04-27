@@ -83,7 +83,6 @@ class RTCSignaling {
     'optional': [
       {'DtlsSrtpKeyAgreement': true},
     ],
-    'isMine': '1'
   };
 
   /*
@@ -245,19 +244,19 @@ class RTCSignaling {
     /*
     * 创建一个peerconnection
     * */
-    _createPeerConnection(peer_id).then((pc) {
+    _createPeerConnection(peer_id, _config).then((pc) {
       _peerConnections[peer_id] = pc;
       //
       _createOffer(peer_id, pc);
 
-      pc.onBeginScreenShare = () {
-        //关闭本地的摄像
-        localStream.dispose();
-      };
-      pc.onFinishScreenShare = () {
-        //重新开启本地拍摄
-        createStream();
-      };
+      // pc.onBeginScreenShare = () {
+      //   //关闭本地的摄像
+      //   localStream.dispose();
+      // };
+      // pc.onFinishScreenShare = () {
+      //   //重新开启本地拍摄
+      //   createStream();
+      // };
     });
   }
 
@@ -329,12 +328,14 @@ class RTCSignaling {
           * 收到远端offer后 创建自己的peerconnection
           * 之后设置远端的媒体信息,并向对端发送answer进行应答
           * */
-          _createPeerConnection(id).then((pc) {
+          _config['isMine'] = '1';
+          _createPeerConnection(id, _config).then((pc) {
             pc.onBeginScreenShare = () {
-              print('开始flutter屏幕共享');
+              localStream.dispose();
             };
             pc.onFinishScreenShare = () {
-              print('屏幕flutter共享结束');
+              localScreenStream.dispose();
+              createStream();
             };
             _peerConnections[id] = pc;
             pc.setRemoteDescription(
@@ -453,9 +454,9 @@ class RTCSignaling {
   /*
   * 创建peerconnection
   * */
-  Future<RTCPeerConnection> _createPeerConnection(id) async {
+  Future<RTCPeerConnection> _createPeerConnection(id, config) async {
     //获取本地媒体 并赋值给peerconnection
-    RTCPeerConnection pc = await createPeerConnection(_iceServers, _config);
+    RTCPeerConnection pc = await createPeerConnection(_iceServers, config);
     myPeerConnection = pc;
 
     pc.addStream(this.localStream);
