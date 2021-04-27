@@ -3,7 +3,6 @@
 #import "FlutterRTCMediaStream.h"
 #import "FlutterRTCDataChannel.h"
 #import "FlutterRTCVideoRenderer.h"
-#import "FlutterScreenShareRecoder.h"
 
 #import <AVFoundation/AVFoundation.h>
 #import <WebRTC/WebRTC.h>
@@ -163,6 +162,7 @@
         self.peerConnections[peerConnectionId] = peerConnection;
         result(@{ @"peerConnectionId" : peerConnectionId});
     } else if ([@"getUserMedia" isEqualToString:call.method]) {
+#pragma mark 使用摄像头
         NSDictionary* argsMap = call.arguments;
         NSDictionary* constraints = argsMap[@"constraints"];
         [self getUserMedia:constraints result:result];
@@ -533,7 +533,8 @@
                 NSLog(@"Not found video track for RTCMediaStream: %@", streamId);
             }
         }
-#pragma mark 设置录制屏幕渲染的操作
+        NSLog(@"设置屏幕渲染的操作");
+#pragma mark 设置屏幕渲染的操作
         [self rendererSetSrcObject:render stream:videoTrack];
         result(nil);
     } else if ([@"mediaStreamTrackHasTorch" isEqualToString:call.method]) {

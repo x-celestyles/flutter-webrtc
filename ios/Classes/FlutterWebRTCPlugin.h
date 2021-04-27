@@ -11,6 +11,10 @@
 #import <ReplayKit/ReplayKit.h>
 #import "FlutterScreenCaptureController.h"
 #import "FlutterNotificationCenter.h"
+#import "FlutterGPUImageCapture.h"
+
+//#import "FlutterWebrtcCameraWithGPUImageCapture.h"
+//#import "FlutterWebrtcCameraWithGPUImageCapture.h"
 
 @class FlutterRTCVideoRenderer;
 
@@ -24,6 +28,10 @@
 @property (nonatomic, retain) UIViewController *viewController;/*for broadcast or ReplayKit */
 @property (nonatomic, strong) NSObject<FlutterBinaryMessenger>* messenger;
 @property (nonatomic, strong) RTCCameraVideoCapturer *videoCapturer;
+
+/** 使用GPUImage的videoCamera */
+@property (nonatomic, strong) FlutterGPUImageCapture *GPUVideoCamera;
+
 @property (nonatomic) BOOL _usingFrontCamera;
 @property (nonatomic) int _targetWidth;
 @property (nonatomic) int _targetHeight;
@@ -34,6 +42,7 @@
 @property (nonatomic, strong) FlutterScreenCaptureController *screenCaptureController;
 /** replayKitVideoTrack */
 @property (nonatomic, strong) RTCVideoTrack *screenVideoTrack;
+@property (nonatomic, strong) RTCVideoTrack *GPUImageVideoTrack;
 /** FlutterNotificationCenter */
 @property (nonatomic, strong) FlutterNotificationCenter *notification;
 

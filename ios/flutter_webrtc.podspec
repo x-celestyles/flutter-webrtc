@@ -17,6 +17,7 @@ A new flutter plugin project.
   s.dependency 'Flutter'
   s.dependency 'Libyuv', '1703'
   s.dependency 'GoogleWebRTC', '1.1.31999'
+  s.dependency 'GPUImage'
   s.ios.deployment_target = '10.0'
   s.static_framework = true
 end

@@ -174,7 +174,7 @@
 
 #pragma mark - RTCVideoRenderer methods
 - (void)renderFrame:(RTCVideoFrame *)frame {
-
+    
     [self copyI420ToCVPixelBuffer:_pixelBufferRef withFrame:frame];
 
     __weak FlutterRTCVideoRenderer *weakSelf = self;

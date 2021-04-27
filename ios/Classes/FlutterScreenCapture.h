@@ -11,6 +11,9 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+extern const CGFloat kScrMaximumSupportedResolution;
+
+
 @class FlutterSocketConnection;
 
 @interface FlutterScreenCapture : RTCVideoCapturer

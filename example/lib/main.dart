@@ -120,7 +120,7 @@ class _MyAppState extends State<MyApp> {
                 context,
                 new MaterialPageRoute(
                     builder: (BuildContext context) =>
-                        new P2PDemo(url: 'ws://192.168.0.106:9999')));
+                        new P2PDemo(url: 'ws://192.168.80.142:9999')));
           }),
     ];
   }

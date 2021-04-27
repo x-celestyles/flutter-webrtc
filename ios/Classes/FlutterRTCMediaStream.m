@@ -7,6 +7,9 @@
 #import "FlutterRTCPeerConnection.h"
 #import "FlutterRPScreenRecorder.h"
 
+
+#define USEGPU  NO
+
 #define kIsEmptyString(str) (str == nil || [str isKindOfClass:[NSNull class]] || ([str isKindOfClass:[NSString class]] && str.length == 0))
 
 @implementation AVCaptureDevice (Flutter)
@@ -292,27 +295,41 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
     }
     
     if (videoDevice) {
+        
         RTCVideoSource *videoSource = [self.peerConnectionFactory videoSource];
-        if (self.videoCapturer) {
-            [self.videoCapturer stopCapture];
-        }
-        self.videoCapturer = [[RTCCameraVideoCapturer alloc] initWithDelegate:videoSource];
-        AVCaptureDeviceFormat *selectedFormat = [self selectFormatForDevice:videoDevice];
-        NSInteger selectedFps = [self selectFpsForFormat:selectedFormat];
-        [self.videoCapturer startCaptureWithDevice:videoDevice format:selectedFormat fps:selectedFps completionHandler:^(NSError *error) {
-            if (error) {
-                NSLog(@"Start capture error: %@", [error localizedDescription]);
+        
+        
+        if (USEGPU) {
+            if (self.GPUVideoCamera) {
+                [self.GPUVideoCamera stopCapture];
             }
-        }];
+            self.GPUVideoCamera = [[FlutterGPUImageCapture alloc] initWithDelegate:videoSource];
+            [self.GPUVideoCamera startCapture];
+        } else {
+            if (self.videoCapturer) {
+                [self.videoCapturer stopCapture];
+            }
+            self.videoCapturer = [[RTCCameraVideoCapturer alloc] initWithDelegate:videoSource];
+            AVCaptureDeviceFormat *selectedFormat = [self selectFormatForDevice:videoDevice];
+            NSInteger selectedFps = [self selectFpsForFormat:selectedFormat];
+            [self.videoCapturer startCaptureWithDevice:videoDevice format:selectedFormat fps:selectedFps completionHandler:^(NSError *error) {
+                if (error) {
+                    NSLog(@"Start capture error: %@", [error localizedDescription]);
+                }
+            }];
+        }
+        
         
         NSString *trackUUID = [[NSUUID UUID] UUIDString];
         RTCVideoTrack *videoTrack = [self.peerConnectionFactory videoTrackWithSource:videoSource trackId:trackUUID];
         [mediaStream addVideoTrack:videoTrack];
         
+        if (USEGPU) {
+            self.GPUImageVideoTrack = videoTrack;
+        }
+        
         successCallback(mediaStream);
     } else {
-        // According to step 6.2.3 of the getUserMedia() algorithm, if there is no
-        // source, fail with a new OverconstrainedError.
         errorCallback(@"OverconstrainedError", /* errorMessage */ nil);
     }
 }
@@ -543,16 +560,31 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
 
 -(void)mediaStreamTrackHasTorch:(RTCMediaStreamTrack *)track result:(FlutterResult) result
 {
-    if (!self.videoCapturer) {
-        result(@NO);
-        return;
+    AVCaptureDeviceInput *deviceInput;
+    if (USEGPU) {
+        if (!self.GPUVideoCamera) {
+            result(@NO);
+            return;
+        }
+        if (self.GPUVideoCamera.videoCamera.captureSession.inputs.count == 0) {
+            result(@NO);
+            return;
+        }
+        deviceInput = [self.GPUVideoCamera.videoCamera.captureSession.inputs objectAtIndex:0];
+        
+    } else {
+        if (!self.videoCapturer) {
+            result(@NO);
+            return;
+        }
+        if (self.videoCapturer.captureSession.inputs.count == 0) {
+            result(@NO);
+            return;
+        }
+        deviceInput = [self.videoCapturer.captureSession.inputs objectAtIndex:0];
     }
-    if (self.videoCapturer.captureSession.inputs.count == 0) {
-        result(@NO);
-        return;
-    }
-
-    AVCaptureDeviceInput *deviceInput = [self.videoCapturer.captureSession.inputs objectAtIndex:0];
+   
+    
     AVCaptureDevice *device = deviceInput.device;
 
     result(@([device isTorchModeSupported:AVCaptureTorchModeOn]));
@@ -560,29 +592,41 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
 
 -(void)mediaStreamTrackSetTorch:(RTCMediaStreamTrack *)track torch:(BOOL)torch result:(FlutterResult)result
 {
-    if (!self.videoCapturer) {
-        NSLog(@"Video capturer is null. Can't set torch");
-        return;
+    
+    AVCaptureDeviceInput *deviceInput;
+    if (USEGPU) {
+        if (!self.GPUVideoCamera) {
+            NSLog(@"Video capturer is null. Can't set torch");
+            return;
+        }
+        if (self.GPUVideoCamera.videoCamera.captureSession.inputs.count == 0) {
+            NSLog(@"Video capturer is missing an input. Can't set torch");
+            return;
+        }
+        deviceInput = [self.GPUVideoCamera.videoCamera.captureSession.inputs objectAtIndex:0];
+    } else {
+        if (!self.videoCapturer) {
+            NSLog(@"Video capturer is null. Can't set torch");
+            return;
+        }
+        if (self.videoCapturer.captureSession.inputs.count == 0) {
+            NSLog(@"Video capturer is missing an input. Can't set torch");
+            return;
+        }
+        deviceInput = [self.videoCapturer.captureSession.inputs objectAtIndex:0];
     }
-    if (self.videoCapturer.captureSession.inputs.count == 0) {
-        NSLog(@"Video capturer is missing an input. Can't set torch");
-        return;
-    }
-
-    AVCaptureDeviceInput *deviceInput = [self.videoCapturer.captureSession.inputs objectAtIndex:0];
+   
+    
     AVCaptureDevice *device = deviceInput.device;
-
     if (![device isTorchModeSupported:AVCaptureTorchModeOn]) {
         NSLog(@"Current capture device does not support torch. Can't set torch");
         return;
     }
-
     NSError *error;
     if ([device lockForConfiguration:&error] == NO) {
         NSLog(@"Failed to aquire configuration lock. %@", error.localizedDescription);
         return;
     }
-
     device.torchMode = torch ? AVCaptureTorchModeOn : AVCaptureTorchModeOff;
     [device unlockForConfiguration];
 
@@ -591,30 +635,48 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
 
 -(void)mediaStreamTrackSwitchCamera:(RTCMediaStreamTrack *)track result:(FlutterResult)result
 {
-    if (!self.videoCapturer) {
-        NSLog(@"Video capturer is null. Can't switch camera");
-        return;
-    }
-    self._usingFrontCamera = !self._usingFrontCamera;
-    AVCaptureDevicePosition position = self._usingFrontCamera ? AVCaptureDevicePositionFront : AVCaptureDevicePositionBack;
-    AVCaptureDevice *videoDevice = [self findDeviceForPosition:position];
-    AVCaptureDeviceFormat *selectedFormat = [self selectFormatForDevice:videoDevice];
-    [self.videoCapturer startCaptureWithDevice:videoDevice format:selectedFormat fps:[self selectFpsForFormat:selectedFormat] completionHandler:^(NSError* error){
-        if (error != nil) {
-            result([FlutterError errorWithCode:@"Error while switching camera" message:@"Error while switching camera" details:error]);
-        } else {
-            result([NSNumber numberWithBool:self._usingFrontCamera]);
+    
+    if (USEGPU) {
+        if (!self.GPUVideoCamera) {
+            return;
         }
-    }];
+        //切换摄像头
+        [self.GPUVideoCamera.videoCamera rotateCamera];
+    } else {
+        if (!self.videoCapturer) {
+            NSLog(@"Video capturer is null. Can't switch camera");
+            return;
+        }
+        self._usingFrontCamera = !self._usingFrontCamera;
+        AVCaptureDevicePosition position = self._usingFrontCamera ? AVCaptureDevicePositionFront : AVCaptureDevicePositionBack;
+        AVCaptureDevice *videoDevice = [self findDeviceForPosition:position];
+        AVCaptureDeviceFormat *selectedFormat = [self selectFormatForDevice:videoDevice];
+        [self.videoCapturer startCaptureWithDevice:videoDevice format:selectedFormat fps:[self selectFpsForFormat:selectedFormat] completionHandler:^(NSError* error){
+            if (error != nil) {
+                result([FlutterError errorWithCode:@"Error while switching camera" message:@"Error while switching camera" details:error]);
+            } else {
+                result([NSNumber numberWithBool:self._usingFrontCamera]);
+            }
+        }];
+    }
 }
 
 -(void)mediaStreamTrackCaptureFrame:(RTCVideoTrack *)track toPath:(NSString *) path result:(FlutterResult)result
 {
-    if (!self.videoCapturer) {
-        NSLog(@"Video capturer is null. Can't capture frame.");
-        return;
+    
+    if (USEGPU) {
+        if (!self.GPUVideoCamera) {
+            NSLog(@"Video capturer is null. Can't capture frame.");
+            return;
+        }
+    } else {
+        if (!self.videoCapturer) {
+            NSLog(@"Video capturer is null. Can't capture frame.");
+            return;
+        }
+        
     }
-
+    
     FlutterRTCFrameCapturer *capturer = [[FlutterRTCFrameCapturer alloc] initWithTrack:track toPath:path result:result];
 }
 
