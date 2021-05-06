@@ -61,7 +61,9 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
           'minHeight': '720',
           'minFrameRate': '30',
         },
-      }
+      },
+      'brightness': '-0.5', //美颜亮度设置-1~1
+      'bilateral': '8' //美颜磨皮设置
     };
 
     try {

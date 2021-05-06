@@ -45,6 +45,8 @@
 @property (nonatomic, strong) RTCVideoTrack *GPUImageVideoTrack;
 /** FlutterNotificationCenter */
 @property (nonatomic, strong) FlutterNotificationCenter *notification;
+/** 是否使用美颜效果 */
+@property (nonatomic) BOOL isUseGPUImage;
 
 - (RTCMediaStream*)streamForId:(NSString*)streamId peerConnectionId:(NSString *)peerConnectionId;
 

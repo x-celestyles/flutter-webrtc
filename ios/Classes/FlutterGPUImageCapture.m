@@ -8,7 +8,6 @@
 #import "FlutterGPUImageCapture.h"
 #include <mach/mach_time.h>
 #import "FlutterScreenCapture.h"
-#import "GPUImageBeautifyFilter.h"
 #import "FlutterGPUImageWriterExport.h"
 
 @interface FlutterGPUImageCapture ()<PixelBufferDelegate>
@@ -17,6 +16,10 @@
 @property (atomic, strong) GPUImageOutput<GPUImageInput> *filter;
 /** FlutterGPUImageWriterExport */
 @property (nonatomic, strong) FlutterGPUImageWriterExport *writerExport;
+/** 磨皮 */
+@property (nonatomic, strong) GPUImageBilateralFilter *bilateralFilter;
+/** 美白 */
+@property (nonatomic, strong) GPUImageBrightnessFilter *brightnessFilter;
 @end
 
 @implementation FlutterGPUImageCapture
@@ -31,6 +34,8 @@
     self = [super initWithDelegate:delegate];
     if (self) {
         mach_timebase_info(&_timebaseInfo);
+        _bilateral = 8;
+        _brightness = 0.1;
     }
     return self;
 }
@@ -40,16 +45,18 @@
         _videoCamera = [[GPUImageVideoCamera alloc] initWithSessionPreset:AVCaptureSessionPreset1280x720 cameraPosition:AVCaptureDevicePositionFront];
         _videoCamera.outputImageOrientation = UIDeviceOrientationPortrait;
         
-        
         GPUImageFilterGroup *filterGroup = [[GPUImageFilterGroup alloc] init];
         //设置磨皮,值越大磨皮效果越好，最大10
         GPUImageBilateralFilter *bilateralFilter = [[GPUImageBilateralFilter alloc] init];
-        bilateralFilter.distanceNormalizationFactor = 10;
+        bilateralFilter.distanceNormalizationFactor = _bilateral;
         [filterGroup addTarget:bilateralFilter];
+        _bilateralFilter = bilateralFilter;
+        
         //设置美白取值-1~1,0是正常范围
         GPUImageBrightnessFilter *brightnessFilter = [[GPUImageBrightnessFilter alloc] init];
-        brightnessFilter.brightness = 0;
+        brightnessFilter.brightness = _brightness;
         [filterGroup addTarget:brightnessFilter];
+        _brightnessFilter = brightnessFilter;
         
         //添加滤镜组链
         [bilateralFilter addTarget:brightnessFilter];
@@ -58,9 +65,6 @@
         
         //相机添加滤镜组
         [_videoCamera addTarget:filterGroup];
-        
-//        GPUImageBeautifyFilter *filter = [[GPUImageBeautifyFilter alloc] init];
-//        [_videoCamera addTarget:filter];
         
         NSString *pathToMovie = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents/Movie.m4v"];
         unlink([pathToMovie UTF8String]);
@@ -71,6 +75,20 @@
         [filterGroup addTarget:_writerExport];
     }
     return _videoCamera;
+}
+
+- (void)setBilateral:(CGFloat)bilateral {
+    _bilateral = bilateral;
+    if (_bilateralFilter) {
+        _bilateralFilter.distanceNormalizationFactor = bilateral;
+    }
+}
+
+- (void)setBrightness:(CGFloat)brightness {
+    _brightness =  brightness;
+    if (_brightnessFilter) {
+        _brightnessFilter.brightness = brightness;
+    }
 }
 
 - (void)startCapture {
@@ -87,43 +105,33 @@
 -(void)PixelBufferCallback:(CVPixelBufferRef)pixelFrameBuffer {
     
     [self didCaptureVideoFrame:pixelFrameBuffer];
-    
-//    UIImageWriteToSavedPhotosAlbum(imageFromSampleBuffer(pixelFrameBuffer), self, @selector(image:didFinishSavingWithError:contextInfo:), nil);
 }
 
 
-//- (void)image:(UIImage *)image didFinishSavingWithError:(NSError *)error contextInfo:(void *)contextInfo {
-//    if (!error) {
-//        NSLog(@"保存成功");
-//    } else {
-//        NSLog(@"保存失败");
-//    }
+
+//UIImage* imageFromSampleBuffer(CVImageBufferRef nextBuffer) {
+//    
+//    CVImageBufferRef imageBuffer =  nextBuffer;
+//    
+//    CVPixelBufferLockBaseAddress(imageBuffer, 0);
+//    void *baseAddress = CVPixelBufferGetBaseAddress(imageBuffer);
+//    size_t width = CVPixelBufferGetWidth(imageBuffer);
+//    size_t height = CVPixelBufferGetHeight(imageBuffer);
+//    size_t bufferSize = CVPixelBufferGetDataSize(imageBuffer);
+//    size_t bytesPerRow = CVPixelBufferGetBytesPerRowOfPlane(imageBuffer, 0);
+//    
+//    CGColorSpaceRef rgbColorSpace = CGColorSpaceCreateDeviceRGB();
+//    CGDataProviderRef provider = CGDataProviderCreateWithData(NULL, baseAddress, bufferSize, NULL);
+//    
+//    CGImageRef cgImage = CGImageCreate(width, height, 8, 32, bytesPerRow, rgbColorSpace, kCGImageAlphaNoneSkipFirst | kCGBitmapByteOrderDefault, provider, NULL, true, kCGRenderingIntentDefault);
+//    UIImage *image = [UIImage imageWithCGImage:cgImage];
+//    CGImageRelease(cgImage);
+//    CGDataProviderRelease(provider);
+//    CGColorSpaceRelease(rgbColorSpace);
+//    
+//    CVPixelBufferUnlockBaseAddress(imageBuffer, 0);
+//    return image;
 //}
-
-
-UIImage* imageFromSampleBuffer(CVImageBufferRef nextBuffer) {
-    
-    CVImageBufferRef imageBuffer =  nextBuffer;
-    
-    CVPixelBufferLockBaseAddress(imageBuffer, 0);
-    void *baseAddress = CVPixelBufferGetBaseAddress(imageBuffer);
-    size_t width = CVPixelBufferGetWidth(imageBuffer);
-    size_t height = CVPixelBufferGetHeight(imageBuffer);
-    size_t bufferSize = CVPixelBufferGetDataSize(imageBuffer);
-    size_t bytesPerRow = CVPixelBufferGetBytesPerRowOfPlane(imageBuffer, 0);
-    
-    CGColorSpaceRef rgbColorSpace = CGColorSpaceCreateDeviceRGB();
-    CGDataProviderRef provider = CGDataProviderCreateWithData(NULL, baseAddress, bufferSize, NULL);
-    
-    CGImageRef cgImage = CGImageCreate(width, height, 8, 32, bytesPerRow, rgbColorSpace, kCGImageAlphaNoneSkipFirst | kCGBitmapByteOrderDefault, provider, NULL, true, kCGRenderingIntentDefault);
-    UIImage *image = [UIImage imageWithCGImage:cgImage];
-    CGImageRelease(cgImage);
-    CGDataProviderRelease(provider);
-    CGColorSpaceRelease(rgbColorSpace);
-    
-    CVPixelBufferUnlockBaseAddress(imageBuffer, 0);
-    return image;
-}
 
 
 - (void)didCaptureVideoFrame:(CVPixelBufferRef)pixelBuffer {

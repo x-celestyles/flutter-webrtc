@@ -8,8 +8,6 @@
 #import "FlutterRPScreenRecorder.h"
 
 
-#define USEGPU  NO
-
 #define kIsEmptyString(str) (str == nil || [str isKindOfClass:[NSNull class]] || ([str isKindOfClass:[NSString class]] && str.length == 0))
 
 @implementation AVCaptureDevice (Flutter)
@@ -215,6 +213,9 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
        errorCallback:(NavigatorUserMediaErrorCallback)errorCallback
          mediaStream:(RTCMediaStream *)mediaStream {
     id videoConstraints = constraints[@"video"];
+    NSString *isUseGPUImage = [NSString stringWithFormat:@"%@",constraints[@"isUseGPUImage"]];
+    self.isUseGPUImage = [isUseGPUImage isEqualToString:@"1"];
+    self.isUseGPUImage = YES;
     AVCaptureDevice *videoDevice;
     if ([videoConstraints isKindOfClass:[NSDictionary class]]) {
         // constraints.video.optional
@@ -297,13 +298,26 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
     if (videoDevice) {
         
         RTCVideoSource *videoSource = [self.peerConnectionFactory videoSource];
-        
-        
-        if (USEGPU) {
+        if (self.isUseGPUImage) {
+            NSString * brightnessStr = [NSString stringWithFormat:@"%@",constraints[@"brightness"]];
+            NSString *bilateralStr = [NSString stringWithFormat:@"%@",constraints[@"bilateral"]];
+            CGFloat brightness = 0.1;
+            CGFloat bilateral = 8.0;
+            if (!kIsEmptyString(brightnessStr)) {
+                brightness = brightnessStr.floatValue;
+            }
+            if (kIsEmptyString(bilateralStr)) {
+                bilateral = bilateralStr.floatValue;
+            }
+            
             if (self.GPUVideoCamera) {
                 [self.GPUVideoCamera stopCapture];
             }
             self.GPUVideoCamera = [[FlutterGPUImageCapture alloc] initWithDelegate:videoSource];
+            //设置美白
+            self.GPUVideoCamera.brightness = brightness;
+            //设置磨皮效果
+            self.GPUVideoCamera.bilateral = bilateral;
             [self.GPUVideoCamera startCapture];
         } else {
             if (self.videoCapturer) {
@@ -324,7 +338,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
         RTCVideoTrack *videoTrack = [self.peerConnectionFactory videoTrackWithSource:videoSource trackId:trackUUID];
         [mediaStream addVideoTrack:videoTrack];
         
-        if (USEGPU) {
+        if (self.isUseGPUImage) {
             self.GPUImageVideoTrack = videoTrack;
         }
         
@@ -561,7 +575,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
 -(void)mediaStreamTrackHasTorch:(RTCMediaStreamTrack *)track result:(FlutterResult) result
 {
     AVCaptureDeviceInput *deviceInput;
-    if (USEGPU) {
+    if (self.isUseGPUImage) {
         if (!self.GPUVideoCamera) {
             result(@NO);
             return;
@@ -594,7 +608,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
 {
     
     AVCaptureDeviceInput *deviceInput;
-    if (USEGPU) {
+    if (self.isUseGPUImage) {
         if (!self.GPUVideoCamera) {
             NSLog(@"Video capturer is null. Can't set torch");
             return;
@@ -636,7 +650,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
 -(void)mediaStreamTrackSwitchCamera:(RTCMediaStreamTrack *)track result:(FlutterResult)result
 {
     
-    if (USEGPU) {
+    if (self.isUseGPUImage) {
         if (!self.GPUVideoCamera) {
             return;
         }
@@ -664,7 +678,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
 -(void)mediaStreamTrackCaptureFrame:(RTCVideoTrack *)track toPath:(NSString *) path result:(FlutterResult)result
 {
     
-    if (USEGPU) {
+    if (self.isUseGPUImage) {
         if (!self.GPUVideoCamera) {
             NSLog(@"Video capturer is null. Can't capture frame.");
             return;
