@@ -62,7 +62,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
           'minFrameRate': '30',
         },
       },
-      'brightness': '-0.5', //美颜亮度设置-1~1
+      'brightness': '0', //美颜亮度设置-1~1
       'bilateral': '8' //美颜磨皮设置
     };
 
