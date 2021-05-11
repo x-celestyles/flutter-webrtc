@@ -30,6 +30,12 @@ class NavigatorWeb extends Navigator {
 
   @override
   Future<void> closeScreenShareMedia() async {
-    mediaDevices.closeScreenShareMedia();
+    await mediaDevices.closeScreenShareMedia();
+  }
+
+  @override
+  Future<void> changeVirturalBakcGround(
+      Map<String, dynamic> constraints) async {
+    await mediaDevices.changeVirturalBakcGround(constraints);
   }
 }

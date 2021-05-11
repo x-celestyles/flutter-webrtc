@@ -110,6 +110,9 @@ abstract class MediaDevices {
   //关闭屏幕共享
   Future<void> closeScreenShareMedia();
 
+  //改变虚拟背景墙
+  Future<void> changeVirturalBakcGround(Map<String, dynamic> constraints);
+
   @Deprecated('use enumerateDevices() instead')
   Future<List<dynamic>> getSources();
 

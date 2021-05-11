@@ -181,6 +181,10 @@
         NSDictionary* constraints = argsMap[@"constraints"];
         [self getScreenShareMedia:constraints result:result];
         result(FlutterMethodNotImplemented);
+    } else if ([@"changeVirtualBackground" isEqualToString:call.method]) {
+#pragma mark 改变虚拟背景图片
+        NSString *backImage = [NSString stringWithFormat:@"%@",call.arguments[@"virtualBackground"]];
+        [self.GPUVideoCamera changeBackGroundImage:backImage];
     } else if ([@"closeScreenShareMedia" isEqualToString:call.method]) {
         //结束屏幕共享的通知
         [_notification postNotificationWithName:@"iOS_FinishBroadcast"];

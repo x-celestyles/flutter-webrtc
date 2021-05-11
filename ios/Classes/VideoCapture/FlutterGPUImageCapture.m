@@ -21,7 +21,8 @@
 
 //背景墙
 @property(nonatomic, strong) MLImageSegmentationAnalyzer *imgSegAnalyzer;
-
+/** imageName */
+@property (nonatomic, strong) UIImage *currentImage;
 @end
 
 @implementation FlutterGPUImageCapture
@@ -52,6 +53,7 @@
     [setting setScene:MLImageSegmentationSceneForegroundOnly];
     [setting setExact:NO];
     [self.imgSegAnalyzer setImageSegmentationAnalyzer:setting];
+    _currentImage = [UIImage imageNamed:@"background.png"];
 }
 
 - (FlutterRTCVideoCamera *)videoCamera {
@@ -60,6 +62,13 @@
         _videoCamera.delegate = self;
     }
     return _videoCamera;
+}
+
+- (void)changeBackGroundImage:(NSString *)imgName {
+    UIImage *image = [UIImage imageNamed:imgName];
+    if (image) {
+        _currentImage = image;
+    }
 }
 
 - (void)didOutPutSampleBuffer:(CMSampleBufferRef)sampleBuffer {
@@ -71,12 +80,11 @@
     MLFrame *frame = [[MLFrame alloc] initWithImage:image];
     MLImageSegmentation *imgSeg = [self.imgSegAnalyzer analyseFrame:frame];
     UIImage *foregroundImage = [imgSeg getForeground];
-    UIImage *backImage = [UIImage imageNamed:@"background.jpg"];
-    if (foregroundImage && backImage) {
+    if (foregroundImage && _currentImage) {
         
         FlutterGPUImagePicture *input = [[FlutterGPUImagePicture alloc] initWithImage:foregroundImage outPutSize:CGSizeMake(720, 1280)];
         
-        FlutterGPUImagePicture *input1 = [[FlutterGPUImagePicture alloc] initWithImage:backImage outPutSize:CGSizeMake(720, 1280)];
+        FlutterGPUImagePicture *input1 = [[FlutterGPUImagePicture alloc] initWithImage:_currentImage outPutSize:CGSizeMake(720, 1280)];
         //混合前后两张图片
         GPUImageAlphaBlendFilter *filter = [[GPUImageAlphaBlendFilter alloc] init];
         filter.mix = 1.0;

@@ -25,7 +25,12 @@ class MediaDevices {
   @Deprecated(
       'Use the navigator.mediaDevices.closeScreenShareMedia(Map<String, dynamic>) provide from the facrory instead')
   static Future<void> closeScreenShareMedia() async {
-    navigator.mediaDevices.closeScreenShareMedia();
+    await navigator.mediaDevices.closeScreenShareMedia();
+  }
+
+  static Future<void> changeVirturalBakcGround(
+      Map<String, dynamic> constraints) async {
+    await navigator.mediaDevices.changeVirturalBakcGround(constraints);
   }
 
   @Deprecated(

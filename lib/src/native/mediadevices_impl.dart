@@ -76,7 +76,22 @@ class MediaDeviceNative extends MediaDevices {
   Future<void> closeScreenShareMedia() async {
     var channel = WebRTC.methodChannel();
     try {
-      channel.invokeMethod('closeScreenShareMedia');
+      await channel.invokeMethod('closeScreenShareMedia');
+    } on PlatformException catch (e) {
+      throw 'Unable to closeScreenShareMedia: ${e.message}';
+    }
+  }
+
+  @override
+  Future<void> changeVirturalBakcGround(
+      Map<String, dynamic> constraints) async {
+    var channel = WebRTC.methodChannel();
+    try {
+      await channel.invokeMethod<Map<dynamic, dynamic>>(
+        'changeVirtualBackground',
+        constraints,
+      );
+      ;
     } on PlatformException catch (e) {
       throw 'Unable to closeScreenShareMedia: ${e.message}';
     }

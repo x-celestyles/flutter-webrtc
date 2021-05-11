@@ -37,6 +37,8 @@ NS_ASSUME_NONNULL_BEGIN
 - (instancetype)initWithDelegate:(__weak id<RTCVideoCapturerDelegate>)delegate;
 - (void)startCapture;
 - (void)stopCapture;
+/** 改变屏幕背景图 */
+- (void)changeBackGroundImage:(NSString *)imgName;
 @end
 
 NS_ASSUME_NONNULL_END

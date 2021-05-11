@@ -17,7 +17,7 @@ A new flutter plugin project.
   #s.ios.vendored_frameworks = 'Frameworks/MLImageSegmentationLibrary.framework'
   #s.vendored_frameworks = 'MLImageSegmentationLibrary.framework'
   s.source_files = 'Classes/**/*'
-  s.resources = 'Classes/Resources/*.jpg'
+  s.resources = 'Classes/Resources/*.png'
   s.public_header_files = 'Classes/**/*.h'
   s.dependency 'Flutter'
   s.dependency 'Libyuv', '1703'

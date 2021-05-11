@@ -172,9 +172,11 @@ class _P2PDemoState extends State<P2PDemo> {
   // 切换成屏幕共享
   void _switchCamera() {
     _rtcSignaling.localStream.dispose();
-    _rtcSignaling.screenShareStream();
+    // _rtcSignaling.screenShareStream();
     // _rtcSignaling.switchCamera();
     // _localRenderer.mirror = true;
+
+    _rtcSignaling.changeVirtualBack();
   }
 
   // 初始化 列表

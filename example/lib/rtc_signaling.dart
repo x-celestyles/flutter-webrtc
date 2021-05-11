@@ -201,7 +201,15 @@ class RTCSignaling {
 *关闭屏幕共享
 **/
   Future<void> closeScreenShare() async {
-    navigator.mediaDevices.closeScreenShareMedia();
+    await navigator.mediaDevices.closeScreenShareMedia();
+  }
+
+  //改变虚拟背景图片
+  Future<void> changeVirtualBack() async {
+    final constraints = <String, dynamic>{
+      'virtualBackground': 'back_groud2.png'
+    };
+    await navigator.mediaDevices.changeVirturalBakcGround(constraints);
   }
 
   /*
