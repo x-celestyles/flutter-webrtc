@@ -110,7 +110,11 @@ abstract class MediaDevices {
   //关闭屏幕共享
   Future<void> closeScreenShareMedia();
 
-  //改变虚拟背景墙
+  /*
+    1,改变虚拟背景墙图片,传参{'virtualBackground':'***.png'}，png格式的图片名称
+    2.关闭虚拟背景墙，传参(固定传参){'close':'1'}
+    两个参数不能同时传，否则默认为改变虚拟背景墙
+  */
   Future<void> changeVirturalBakcGround(Map<String, dynamic> constraints);
 
   @Deprecated('use enumerateDevices() instead')

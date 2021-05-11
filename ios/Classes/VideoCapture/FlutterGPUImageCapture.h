@@ -39,6 +39,8 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)stopCapture;
 /** 改变屏幕背景图 */
 - (void)changeBackGroundImage:(NSString *)imgName;
+/** 关闭虚拟背景的使用 */
+- (void)closeVirturalBackGround;
 @end
 
 NS_ASSUME_NONNULL_END

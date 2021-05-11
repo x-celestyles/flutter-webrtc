@@ -7,7 +7,7 @@
 #import <AVFoundation/AVFoundation.h>
 #import <WebRTC/WebRTC.h>
 
-
+#define IsStringValid(_str) (_str && [_str isKindOfClass:[NSString class]] && ([_str length] > 0))
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wprotocol"
@@ -182,9 +182,19 @@
         [self getScreenShareMedia:constraints result:result];
         result(FlutterMethodNotImplemented);
     } else if ([@"changeVirtualBackground" isEqualToString:call.method]) {
-#pragma mark 改变虚拟背景图片
-        NSString *backImage = [NSString stringWithFormat:@"%@",call.arguments[@"virtualBackground"]];
-        [self.GPUVideoCamera changeBackGroundImage:backImage];
+#pragma mark 改变虚拟背景图片（同时开启虚拟背景）
+        NSString *virtualBackground = call.arguments[@"virtualBackground"];
+        if (IsStringValid(virtualBackground)) {
+            //改变虚拟背景图片
+            NSString *backImage = [NSString stringWithFormat:@"%@",call.arguments[@"virtualBackground"]];
+            [self.GPUVideoCamera changeBackGroundImage:backImage];
+        } else {
+            //关闭虚拟背景图片
+            NSString *close = [NSString stringWithFormat:@"%@",call.arguments[@"close"]];
+            if ([close isEqualToString:@"1"]) {
+                [self.GPUVideoCamera closeVirturalBackGround];
+            }
+        }
     } else if ([@"closeScreenShareMedia" isEqualToString:call.method]) {
         //结束屏幕共享的通知
         [_notification postNotificationWithName:@"iOS_FinishBroadcast"];

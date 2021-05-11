@@ -23,6 +23,8 @@
 @property(nonatomic, strong) MLImageSegmentationAnalyzer *imgSegAnalyzer;
 /** imageName */
 @property (nonatomic, strong) UIImage *currentImage;
+/** 是否开启了虚拟背景墙的使用 */
+@property (nonatomic) BOOL isAllowUseVirturalBack;
 @end
 
 @implementation FlutterGPUImageCapture
@@ -54,6 +56,7 @@
     [setting setExact:NO];
     [self.imgSegAnalyzer setImageSegmentationAnalyzer:setting];
     _currentImage = [UIImage imageNamed:@"background.png"];
+    _isAllowUseVirturalBack = NO;
 }
 
 - (FlutterRTCVideoCamera *)videoCamera {
@@ -65,47 +68,57 @@
 }
 
 - (void)changeBackGroundImage:(NSString *)imgName {
+    _isAllowUseVirturalBack = YES;
     UIImage *image = [UIImage imageNamed:imgName];
     if (image) {
         _currentImage = image;
     }
 }
 
+- (void)closeVirturalBackGround {
+    _isAllowUseVirturalBack = NO;
+}
+
 - (void)didOutPutSampleBuffer:(CMSampleBufferRef)sampleBuffer {
-    
-    //在这里添加背景墙
-    HW_TIME_BEGIN(total);
-    
-    UIImage *image = [UIImage convertPixBufferToImage:CMSampleBufferGetImageBuffer(sampleBuffer)];
-    MLFrame *frame = [[MLFrame alloc] initWithImage:image];
-    MLImageSegmentation *imgSeg = [self.imgSegAnalyzer analyseFrame:frame];
-    UIImage *foregroundImage = [imgSeg getForeground];
-    if (foregroundImage && _currentImage) {
+    if (_isAllowUseVirturalBack) {
+        //开启了虚拟背景的使用
+        //在这里添加背景墙
+        HW_TIME_BEGIN(total);
         
-        FlutterGPUImagePicture *input = [[FlutterGPUImagePicture alloc] initWithImage:foregroundImage outPutSize:CGSizeMake(720, 1280)];
+        UIImage *image = [UIImage convertPixBufferToImage:CMSampleBufferGetImageBuffer(sampleBuffer)];
+        MLFrame *frame = [[MLFrame alloc] initWithImage:image];
+        MLImageSegmentation *imgSeg = [self.imgSegAnalyzer analyseFrame:frame];
+        UIImage *foregroundImage = [imgSeg getForeground];
+        if (foregroundImage && _currentImage) {
+            
+            FlutterGPUImagePicture *input = [[FlutterGPUImagePicture alloc] initWithImage:foregroundImage outPutSize:CGSizeMake(720, 1280)];
+            
+            FlutterGPUImagePicture *input1 = [[FlutterGPUImagePicture alloc] initWithImage:_currentImage outPutSize:CGSizeMake(720, 1280)];
+            //混合前后两张图片
+            GPUImageAlphaBlendFilter *filter = [[GPUImageAlphaBlendFilter alloc] init];
+            filter.mix = 1.0;
+            //先混合背景图片
+            [input1 addTarget:filter];
+            [input1 processImage];
+            
+            [filter useNextFrameForImageCapture];
+            //再混合前景图片
+            [input addTarget:filter];
+            [input processImage];
+            //获取混合的图片
+           foregroundImage = filter.imageFromCurrentFramebuffer;
+        }
+        HW_TIME_END(total);
         
-        FlutterGPUImagePicture *input1 = [[FlutterGPUImagePicture alloc] initWithImage:_currentImage outPutSize:CGSizeMake(720, 1280)];
-        //混合前后两张图片
-        GPUImageAlphaBlendFilter *filter = [[GPUImageAlphaBlendFilter alloc] init];
-        filter.mix = 1.0;
-        //先混合背景图片
-        [input1 addTarget:filter];
-        [input1 processImage];
-        
-        [filter useNextFrameForImageCapture];
-        //再混合前景图片
-        [input addTarget:filter];
-        [input processImage];
-        //获取混合的图片
-       foregroundImage = filter.imageFromCurrentFramebuffer;
+        CVPixelBufferRef convertBuffer = [UIImage convertImageToPixBuffer:foregroundImage];
+        if (totalt1.tv_sec - self->_tiem_pre > 1) {
+            self->_tiem_pre = totalt1.tv_sec;
+        }
+        [self handlePixbuffer:convertBuffer];
+    } else {
+        //没有使用虚拟背景
+        [self handlePixbuffer:CMSampleBufferGetImageBuffer(sampleBuffer)];
     }
-    HW_TIME_END(total);
-    
-    CVPixelBufferRef convertBuffer = [UIImage convertImageToPixBuffer:foregroundImage];
-    if (totalt1.tv_sec - self->_tiem_pre > 1) {
-        self->_tiem_pre = totalt1.tv_sec;
-    }
-    [self handlePixbuffer:convertBuffer];
 }
 
 - (void)startCapture {
@@ -134,7 +147,10 @@
         }
         CVPixelBufferRef outputPixelBuffer = nil;
         OSType pixelFormat = CVPixelBufferGetPixelFormatType(convertBuffer);
-        CVPixelBufferRelease(convertBuffer);
+        if (_isAllowUseVirturalBack) {
+            CVPixelBufferRelease(convertBuffer);
+        }
+        
         CVReturn status = CVPixelBufferCreate(kCFAllocatorDefault, width,
                                               height, pixelFormat, nil,
                                               &outputPixelBuffer);
