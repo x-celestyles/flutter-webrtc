@@ -580,11 +580,11 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
             result(@NO);
             return;
         }
-        if (self.GPUVideoCamera.videoCamera.captureSession.inputs.count == 0) {
+        if (self.GPUVideoCamera.videoCamera.session.inputs.count == 0) {
             result(@NO);
             return;
         }
-        deviceInput = [self.GPUVideoCamera.videoCamera.captureSession.inputs objectAtIndex:0];
+        deviceInput = [self.GPUVideoCamera.videoCamera.session.inputs objectAtIndex:0];
         
     } else {
         if (!self.videoCapturer) {
@@ -613,11 +613,11 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
             NSLog(@"Video capturer is null. Can't set torch");
             return;
         }
-        if (self.GPUVideoCamera.videoCamera.captureSession.inputs.count == 0) {
+        if (self.GPUVideoCamera.videoCamera.session.inputs.count == 0) {
             NSLog(@"Video capturer is missing an input. Can't set torch");
             return;
         }
-        deviceInput = [self.GPUVideoCamera.videoCamera.captureSession.inputs objectAtIndex:0];
+        deviceInput = [self.GPUVideoCamera.videoCamera.session.inputs objectAtIndex:0];
     } else {
         if (!self.videoCapturer) {
             NSLog(@"Video capturer is null. Can't set torch");
@@ -655,7 +655,7 @@ typedef void (^NavigatorUserMediaSuccessCallback)(RTCMediaStream *mediaStream);
             return;
         }
         //切换摄像头
-        [self.GPUVideoCamera.videoCamera rotateCamera];
+        [self.GPUVideoCamera.videoCamera changeCameraPosition];
     } else {
         if (!self.videoCapturer) {
             NSLog(@"Video capturer is null. Can't switch camera");

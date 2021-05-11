@@ -12,13 +12,21 @@ A new flutter plugin project.
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'CloudWebRTC' => 'duanweiwei1982@gmail.com' }
   s.source           = { :path => '.' }
+  #s.source           = { :path => 'https://github.com/huoda1237/YeasVideoImages.git'}
+  
+  #s.ios.vendored_frameworks = 'Frameworks/MLImageSegmentationLibrary.framework'
+  #s.vendored_frameworks = 'MLImageSegmentationLibrary.framework'
   s.source_files = 'Classes/**/*'
+  s.resources = 'Classes/Resources/*.jpg'
   s.public_header_files = 'Classes/**/*.h'
   s.dependency 'Flutter'
   s.dependency 'Libyuv', '1703'
   s.dependency 'GoogleWebRTC', '1.1.31999'
   s.dependency 'GPUImage'
-  s.ios.deployment_target = '10.0'
+  #s.dependency 'YeasVideoImages'
+  s.dependency 'MLImageSegmentationLibrary'
+  s.ios.deployment_target = '12.0'
   s.static_framework = true
+
 end
 
