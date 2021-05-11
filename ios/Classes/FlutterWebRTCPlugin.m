@@ -547,7 +547,6 @@
                 NSLog(@"Not found video track for RTCMediaStream: %@", streamId);
             }
         }
-        NSLog(@"设置屏幕渲染的操作");
 #pragma mark 设置屏幕渲染的操作
         [self rendererSetSrcObject:render stream:videoTrack];
         result(nil);
