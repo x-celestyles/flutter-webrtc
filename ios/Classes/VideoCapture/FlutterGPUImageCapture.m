@@ -107,6 +107,9 @@
             [input processImage];
             //获取混合的图片
            foregroundImage = filter.imageFromCurrentFramebuffer;
+            
+           //添加美颜效果
+            foregroundImage = [self beauteImage:foregroundImage];
         }
         HW_TIME_END(total);
         
@@ -117,8 +120,33 @@
         [self handlePixbuffer:convertBuffer];
     } else {
         //没有使用虚拟背景
-        [self handlePixbuffer:CMSampleBufferGetImageBuffer(sampleBuffer)];
+        UIImage *image = [UIImage convertPixBufferToImage:CMSampleBufferGetImageBuffer(sampleBuffer)];
+        if (image) {
+            
+            image = [self beauteImage:image];
+            if (image) {
+                CVPixelBufferRef convertBuffer = [UIImage convertImageToPixBuffer:image];
+                [self handlePixbuffer:convertBuffer];
+            }
+        }
     }
+}
+
+//将图片磨皮
+- (UIImage *)beauteImage:(UIImage *)originImage {
+    
+    GPUImagePicture *input = [[GPUImagePicture alloc] initWithImage:originImage];
+    
+    //设置磨皮,值越大磨皮效果越好，最大10
+    GPUImageBilateralFilter *bilateralFilter = [[GPUImageBilateralFilter alloc] init];
+    bilateralFilter.distanceNormalizationFactor = 8;
+    [bilateralFilter forceProcessingAtSize:originImage.size];
+    [bilateralFilter useNextFrameForImageCapture];
+    
+    [input addTarget:bilateralFilter];
+    [input processImage];
+    
+    return bilateralFilter.imageFromCurrentFramebuffer;
 }
 
 - (void)startCapture {
@@ -147,9 +175,7 @@
         }
         CVPixelBufferRef outputPixelBuffer = nil;
         OSType pixelFormat = CVPixelBufferGetPixelFormatType(convertBuffer);
-        if (_isAllowUseVirturalBack) {
-            CVPixelBufferRelease(convertBuffer);
-        }
+        CVPixelBufferRelease(convertBuffer);
         
         CVReturn status = CVPixelBufferCreate(kCFAllocatorDefault, width,
                                               height, pixelFormat, nil,
