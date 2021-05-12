@@ -91,7 +91,7 @@ class MediaDevicesWeb extends MediaDevices {
   Future<void> closeScreenShareMedia() async {}
 
   @override
-  Future<void> changeVirturalBakcGround(
+  Future<void> changeVirturalBackGround(
       Map<String, dynamic> constraints) async {}
 
   @override

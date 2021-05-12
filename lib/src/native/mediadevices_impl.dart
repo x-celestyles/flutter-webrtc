@@ -83,7 +83,7 @@ class MediaDeviceNative extends MediaDevices {
   }
 
   @override
-  Future<void> changeVirturalBakcGround(
+  Future<void> changeVirturalBackGround(
       Map<String, dynamic> constraints) async {
     var channel = WebRTC.methodChannel();
     try {

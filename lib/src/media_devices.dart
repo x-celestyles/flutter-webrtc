@@ -28,9 +28,9 @@ class MediaDevices {
     await navigator.mediaDevices.closeScreenShareMedia();
   }
 
-  static Future<void> changeVirturalBakcGround(
+  static Future<void> changeVirturalBackGround(
       Map<String, dynamic> constraints) async {
-    await navigator.mediaDevices.changeVirturalBakcGround(constraints);
+    await navigator.mediaDevices.changeVirturalBackGround(constraints);
   }
 
   @Deprecated(

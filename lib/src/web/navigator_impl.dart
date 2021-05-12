@@ -34,8 +34,8 @@ class NavigatorWeb extends Navigator {
   }
 
   @override
-  Future<void> changeVirturalBakcGround(
+  Future<void> changeVirturalBackGround(
       Map<String, dynamic> constraints) async {
-    await mediaDevices.changeVirturalBakcGround(constraints);
+    await mediaDevices.changeVirturalBackGround(constraints);
   }
 }

@@ -15,7 +15,7 @@ abstract class Navigator {
   @Deprecated('use mediadevice.closeScreenShareMedia() instead')
   Future<void> closeScreenShareMedia();
 
-  Future<void> changeVirturalBakcGround(Map<String, dynamic> constraints);
+  Future<void> changeVirturalBackGround(Map<String, dynamic> constraints);
 
   @Deprecated('use mediadevice.enumerateDevices() instead')
   Future<List<dynamic>> getSources();
