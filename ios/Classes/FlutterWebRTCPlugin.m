@@ -192,7 +192,7 @@
             //关闭虚拟背景图片
             NSString *close = [NSString stringWithFormat:@"%@",call.arguments[@"close"]];
             if ([close isEqualToString:@"1"]) {
-                [self.GPUVideoCamera closeVirturalBackGround];
+                [self.GPUVideoCamera closeVirtualBackGround];
             }
         }
     } else if ([@"closeScreenShareMedia" isEqualToString:call.method]) {

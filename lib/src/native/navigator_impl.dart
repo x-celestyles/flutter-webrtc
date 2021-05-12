@@ -21,9 +21,9 @@ class NavigatorNative extends Navigator {
   }
 
   @override
-  Future<void> changeVirturalBackGround(
+  Future<void> changeVirtualBackGround(
       Map<String, dynamic> constraints) async {
-    await mediaDevices.changeVirturalBackGround(constraints);
+    await mediaDevices.changeVirtualBackGround(constraints);
   }
 
   @override

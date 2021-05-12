@@ -75,7 +75,7 @@
     }
 }
 
-- (void)closeVirturalBackGround {
+- (void)closeVirtualBackGround {
     _isAllowUseVirturalBack = NO;
 }
 

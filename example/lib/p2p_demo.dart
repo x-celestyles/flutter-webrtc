@@ -167,7 +167,7 @@ class _P2PDemoState extends State<P2PDemo> {
     // if (_rtcSignaling != null) {
     //   _rtcSignaling.bye();
     // }
-    _rtcSignaling.closeVirturalBack();
+    _rtcSignaling.closeVirtualBack();
   }
 
   // 切换成屏幕共享

@@ -209,13 +209,13 @@ class RTCSignaling {
     final constraints = <String, dynamic>{
       'virtualBackground': 'back_groud2.png'
     };
-    await navigator.mediaDevices.changeVirturalBackGround(constraints);
+    await navigator.mediaDevices.changeVirtualBackGround(constraints);
   }
 
   //关闭虚拟背景
-  Future<void> closeVirturalBack() async {
+  Future<void> closeVirtualBack() async {
     final constraints = <String, dynamic>{'close': '1'};
-    await navigator.mediaDevices.changeVirturalBackGround(constraints);
+    await navigator.mediaDevices.changeVirtualBackGround(constraints);
   }
 
   /*
