@@ -100,6 +100,8 @@
     if ([videoConnect isVideoOrientationSupported])
         [videoConnect setVideoOrientation:AVCaptureVideoOrientationPortrait];
     if (position == AVCaptureDevicePositionFront) {
+        videoConnect.videoMirrored = NO;
+    } else {
         videoConnect.videoMirrored = YES;
     }
     [self.session commitConfiguration];
