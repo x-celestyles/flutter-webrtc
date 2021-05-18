@@ -55,7 +55,7 @@
     [setting setScene:MLImageSegmentationSceneForegroundOnly];
     [setting setExact:NO];
     [self.imgSegAnalyzer setImageSegmentationAnalyzer:setting];
-    _currentImage = [UIImage imageNamed:@"background.png"];
+    _currentImage = [UIImage imageNamed:@"virtual_back1.png"];
     _isAllowUseVirturalBack = NO;
 }
 
