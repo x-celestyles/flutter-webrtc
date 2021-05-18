@@ -129,6 +129,7 @@
 #pragma mark FlutterPlugin代理方法，Flutter点击是回调到原生的这个方法
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult) result {
     
+    NSLog(@"调用的方法是什么：%@",call.method);
     //获取手机系统版本[[UIDevice currentDevice] systemVersion];
     if ([@"createPeerConnection" isEqualToString:call.method]) {
 #pragma mark 创建peerconnect
@@ -416,8 +417,14 @@
                 RTCVideoTrack *videoTrack = (RTCVideoTrack *)track;
                 RTCVideoSource *source = videoTrack.source;
                 if(source){
-                    [self.videoCapturer stopCapture];
-                    self.videoCapturer = nil;
+                    if (self.isUseGPUImage) {
+                        [self.GPUVideoCamera stopCapture];
+                        self.GPUVideoCamera = nil;
+                    } else {
+                        [self.videoCapturer stopCapture];
+                        self.videoCapturer = nil;
+                    }
+                    
                 }
             }
             for (RTCAudioTrack *track in stream.audioTracks) {
