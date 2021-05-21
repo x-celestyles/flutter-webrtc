@@ -8,6 +8,12 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.RectF;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
 import android.hardware.camera2.CameraAccessException;
@@ -29,6 +35,7 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.util.Range;
 import android.util.SparseArray;
+import android.util.TypedValue;
 import android.view.Surface;
 import android.view.WindowManager;
 
@@ -46,6 +53,18 @@ import com.cloudwebrtc.webrtc.utils.EglUtils;
 import com.cloudwebrtc.webrtc.utils.MediaConstraintsUtils;
 import com.cloudwebrtc.webrtc.utils.ObjectType;
 import com.cloudwebrtc.webrtc.utils.PermissionUtils;
+import com.cloudwebrtc.webrtc.videocapture.GPUImageBeautyFilter;
+import com.cloudwebrtc.webrtc.videocapture.ImageSegmentAnalyzerTransactor;
+import com.cloudwebrtc.webrtc.videocapture.VideoCaptureUtils;
+import com.huawei.hmf.tasks.OnFailureListener;
+import com.huawei.hmf.tasks.OnSuccessListener;
+import com.huawei.hmf.tasks.Task;
+import com.huawei.hms.mlsdk.MLAnalyzerFactory;
+import com.huawei.hms.mlsdk.common.MLFrame;
+import com.huawei.hms.mlsdk.imgseg.MLImageSegmentation;
+import com.huawei.hms.mlsdk.imgseg.MLImageSegmentationAnalyzer;
+import com.huawei.hms.mlsdk.imgseg.MLImageSegmentationScene;
+import com.huawei.hms.mlsdk.imgseg.MLImageSegmentationSetting;
 
 import org.webrtc.AudioSource;
 import org.webrtc.AudioTrack;
@@ -56,6 +75,7 @@ import org.webrtc.Camera2Enumerator;
 import org.webrtc.CameraEnumerationAndroid.CaptureFormat;
 import org.webrtc.CameraEnumerator;
 import org.webrtc.CameraVideoCapturer;
+import org.webrtc.Logging;
 import org.webrtc.MediaConstraints;
 import org.webrtc.MediaStream;
 import org.webrtc.MediaStreamTrack;
@@ -63,6 +83,8 @@ import org.webrtc.PeerConnectionFactory;
 import org.webrtc.ScreenCapturerAndroid;
 import org.webrtc.SurfaceTextureHelper;
 import org.webrtc.VideoCapturer;
+import org.webrtc.VideoFrame;
+import org.webrtc.VideoFrameHandler;
 import org.webrtc.VideoSource;
 import org.webrtc.VideoTrack;
 import org.webrtc.audio.JavaAudioDeviceModule;
@@ -75,6 +97,11 @@ import java.util.List;
 import java.util.Map;
 
 import io.flutter.plugin.common.MethodChannel.Result;
+import jp.co.cyberagent.android.gpuimage.GPUImage;
+import jp.co.cyberagent.android.gpuimage.filter.GPUImageNormalBlendFilter;
+//import jp.co.cyberagent.android.gpuimage.GPUImageAddBlendFilter;
+//import jp.co.cyberagent.android.gpuimage.GPUImageNormalBlendFilter;
+//import jp.co.cyberagent.android.gpuimage.GPUImageView;
 
 /**
  * The implementation of {@code getUserMedia} extracted into a separate file in order to reduce
@@ -111,6 +138,8 @@ class GetUserMediaImpl {
     private OutputAudioSamplesInterceptor outputSamplesInterceptor = null;
     JavaAudioDeviceModule audioDeviceModule;
     private final SparseArray<MediaRecorderImpl> mediaRecorders = new SparseArray<>();
+
+    private GPUImage gpuImage;
 
     public void screenRequestPremissions(ResultReceiver resultReceiver) {
         final Activity activity = stateProvider.getActivity();
@@ -482,6 +511,7 @@ class GetUserMediaImpl {
                         PeerConnectionFactory pcFactory = stateProvider.getPeerConnectionFactory();
                         VideoSource videoSource = pcFactory.createVideoSource(true);
 
+
                         String threadName = Thread.currentThread().getName();
                         SurfaceTextureHelper surfaceTextureHelper =
                                 SurfaceTextureHelper.create(threadName, EglUtils.getRootEglBaseContext());
@@ -628,6 +658,81 @@ class GetUserMediaImpl {
     }
 
     private boolean isFacing=true;
+
+    private int i = 1;
+//    private GPUImageBeautyFilter gPUImageBeautyFilter = new GPUImageBeautyFilter();
+
+    private MLImageSegmentationAnalyzer analyzer;
+
+    private Canvas canvas;
+
+    private volatile Bitmap bgBitmap;
+
+    private Bitmap newBitmap;
+
+    private boolean virtualBgOpen = false;
+
+    private Bitmap getResourceBitmap(int resId) {
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        TypedValue value = new TypedValue();
+        applicationContext.getResources().openRawResource(resId, value);
+        options.inTargetDensity = value.density;
+        options.inScaled = false;//不缩放
+        return BitmapFactory.decodeResource(applicationContext.getResources(), resId, options);
+    }
+
+    private MLImageSegmentationAnalyzer getAnalyzer() {
+        if(this.analyzer == null ){
+            // 方式二：使用自定义参数MLImageSegmentationSetting配置图像分割检测器。
+            MLImageSegmentationSetting setting = new MLImageSegmentationSetting.Factory()
+                    .setExact(false)
+                    .setAnalyzerType(MLImageSegmentationSetting.BODY_SEG)
+                    .setScene(MLImageSegmentationScene.ALL)
+                    .create();
+            GetUserMediaImpl.this.analyzer = MLAnalyzerFactory.getInstance().getImageSegmentationAnalyzer(setting);
+        }
+        return analyzer;
+    }
+
+
+    private Canvas getCanvas(int width, int height) {
+        if(canvas == null){
+            newBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+            canvas = new Canvas(newBitmap);
+            // this.getBgBitmap();
+        }
+        canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+        return canvas;
+    }
+
+    public void destroy(){
+        if(this.analyzer != null ){
+            this.analyzer.destroy();
+        }
+        if(this.bgBitmap != null){
+            this.bgBitmap.recycle();
+        }
+        if(this.newBitmap != null){
+            this.newBitmap.recycle();
+        }
+    }
+
+    public void setBgBitmap(String bgImage){
+        if(bgImage == null || "".equals(bgImage)){
+            virtualBgOpen = false;
+            if(canvas != null){
+                canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+            }
+            /*if(bgBitmap != null){
+                bgBitmap.recycle();
+            }
+            this.bgBitmap = null;*/
+            return;
+        }
+        this.virtualBgOpen = true;
+        this.bgBitmap = this.getResourceBitmap(VideoCaptureUtils.getId(applicationContext, bgImage));
+    }
+
     private VideoTrack getUserVideo(ConstraintsMap constraints) {
         ConstraintsMap videoConstraintsMap = null;
         ConstraintsMap videoConstraintsMandatory = null;
@@ -669,6 +774,85 @@ class GetUserMediaImpl {
 
         PeerConnectionFactory pcFactory = stateProvider.getPeerConnectionFactory();
         VideoSource videoSource = pcFactory.createVideoSource(false);
+
+        /*if(GetUserMediaImpl.this.bgBitmap == null) {
+            GetUserMediaImpl.this.bgBitmap = this.getResourceBitmap(R.drawable.virtual_back4);
+        }*/
+
+        if(videoSource.getVideoFrameHandler() == null){
+            videoSource.setVideoFrameHandler(new VideoFrameHandler() {
+                @Override
+                public VideoFrame handle(VideoFrame videoFrame) {
+                    if (GetUserMediaImpl.this.virtualBgOpen && GetUserMediaImpl.this.bgBitmap != null) {
+                        Bitmap bitmap = VideoCaptureUtils.ConvertI420ToARGB(videoFrame);
+                        Canvas canvas = GetUserMediaImpl.this.getCanvas(bitmap.getWidth(), bitmap.getHeight());
+                        canvas.drawBitmap(bgBitmap, null, new RectF(0, 0, bgBitmap.getWidth(), bgBitmap.getHeight()), null);
+
+                        // 通过bitmap创建MLFrame，bitmap为输入的Bitmap格式图片数据。
+                        GetUserMediaImpl.this.getAnalyzer();
+                        MLFrame mlFrame = new MLFrame.Creator().setBitmap(bitmap).create();
+                        SparseArray<MLImageSegmentation> segmentations = analyzer.analyseFrame(mlFrame);
+                        MLImageSegmentation segmentation = segmentations.get(0);
+                        bitmap = segmentation.getForeground();
+
+                        VideoCaptureUtils.blendBitmap(canvas, bitmap);
+                        VideoFrame.I420Buffer i420Buffer = VideoCaptureUtils.convertARGBToI420(newBitmap);
+                        if (i420Buffer != null) {
+                            bitmap.recycle();
+                            return new VideoFrame(i420Buffer, 0, videoFrame.getTimestampNs());
+                        }
+                    }
+                    return videoFrame;
+/*
+                    Bitmap bitmap = VideoCaptureUtils.ConvertI420ToARGB(videoFrame);
+//                    Bitmap bitmap1 = BitmapFactory.decodeResource(applicationContext.getResources(), R.drawable.classification_image);
+//                    Bitmap bitmap2 = BitmapFactory.decodeResource(applicationContext.getResources(), R.drawable.imgseg_foreground);
+//                    Bitmap bitmap = BitmapFactory.decodeResource(applicationContext.getResources(), R.drawable.su);
+                    if(bitmap == null || bitmap.getHeight() < 1){
+                        return videoFrame;
+                    }
+//                    String name = String.valueOf(i++);
+//                    MediaStore.Images.Media.insertImage(applicationContext.getContentResolver(), bitmap, name, name);
+
+                    // 通过bitmap创建MLFrame，bitmap为输入的Bitmap格式图片数据。
+                    MLFrame mlFrame = new MLFrame.Creator().setBitmap(bitmap).create();
+                    SparseArray<MLImageSegmentation> segmentations = analyzer.analyseFrame(mlFrame);
+                    MLImageSegmentation segmentation = segmentations.get(0);
+                    bitmap = segmentation.getForeground();
+
+//                    if(GetUserMediaImpl.this.gpuImage == null){
+//                        GetUserMediaImpl.this.gpuImage = new GPUImage(applicationContext);
+//                    }
+//
+//                    gpuImage.setImage(bitmap1);
+//////                  gpuImage.setFilter(GetUserMediaImpl.this.gPUImageBeautyFilter);
+//                    GPUImageNormalBlendFilter gpuImageNormalBlendFilter = new GPUImageNormalBlendFilter();
+//                    gpuImageNormalBlendFilter.setBitmap(bitmap2);
+//                    gpuImage.setFilter(gpuImageNormalBlendFilter);
+
+
+//                    Bitmap bitmap3 = gpuImage.getBitmapWithFilterApplied();
+//                    Bitmap.Config config = bitmap3.getConfig();
+//                    Bitmap.Config config = bitmap3.getConfig();/
+
+//                    bitmap = VideoCaptureUtils.blendBitmap(bitmap1, bitmap);
+
+                    VideoCaptureUtils.blendBitmap(getCanvas(bitmap.getWidth(), bitmap.getHeight()), bitmap);
+                    VideoFrame.I420Buffer i420Buffer = VideoCaptureUtils.convertARGBToI420(newBitmap);
+
+//                    VideoFrame.I420Buffer i420Buffer = VideoCaptureUtils.convertARGBToI420(bitmap);
+                    if(i420Buffer != null){
+//                        bitmap.recycle();
+                        long timestampNs = videoFrame.getTimestampNs();
+                        int rotation = 0;
+                        return new VideoFrame(i420Buffer, rotation, timestampNs);
+                    }
+                    return videoFrame;
+//                    return videoFrame;
+*/
+                }
+            });
+        }
         String threadName = Thread.currentThread().getName();
         SurfaceTextureHelper surfaceTextureHelper =
                 SurfaceTextureHelper.create(threadName, EglUtils.getRootEglBaseContext());

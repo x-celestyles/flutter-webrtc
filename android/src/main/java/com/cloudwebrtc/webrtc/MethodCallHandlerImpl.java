@@ -128,6 +128,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   }
 
   void dispose() {
+    getUserMediaImpl.destroy();
     mPeerConnectionObservers.clear();
   }
 
@@ -182,6 +183,12 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         Map<String, Object> constraints = call.argument("constraints");
         ConstraintsMap constraintsMap = new ConstraintsMap(constraints);
         getUserMedia(constraintsMap, result);
+        break;
+      }
+      case "changeVirtualBackground": {
+        String virtualBackground = call.argument("virtualBackground");
+        // getUserMedia(constraintsMap, result);
+        changeVirtualBackground(virtualBackground, result);
         break;
       }
       case "createLocalMediaStream":
@@ -1037,6 +1044,10 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     }
 
     getUserMediaImpl.getUserMedia(constraints, result, mediaStream);
+  }
+
+  public void changeVirtualBackground(String virtualBackground, Result result) {
+      getUserMediaImpl.setBgBitmap(virtualBackground);
   }
 
   public void getDisplayMedia(ConstraintsMap constraints, Result result) {

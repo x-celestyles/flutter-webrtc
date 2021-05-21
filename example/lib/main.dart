@@ -118,9 +118,10 @@ class _MyAppState extends State<MyApp> {
           push: (BuildContext context) {
             Navigator.push(
                 context,
-                new MaterialPageRoute(
+                MaterialPageRoute(
                     builder: (BuildContext context) =>
-                        new P2PDemo(url: 'ws://192.168.80.142:9999')));
+                        P2PDemo(url: 'ws://192.168.80.142:9999')));
+                        // P2PDemo(url: 'ws://192.168.80.123:8081')));
           }),
     ];
   }

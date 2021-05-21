@@ -51,3 +51,4 @@ example/.vscode/launch.json
 
 android/.classpath
 android/.settings/org.eclipse.buildship.core.prefs
+.dart_tool/package_config.json

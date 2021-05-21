@@ -1,0 +1,17 @@
+https://webrtc.github.io/webrtc-org/release-notes/
+https://chromium.googlesource.com/external/webrtc/+/refs/heads/master/docs/release-notes.md
+此版本 M88 Release Notes 为基础编译
+mvn deploy:deploy-file -Dfile=libwebrtc_1.0.88.aar -Durl="file://." -DgroupId="org.webrtc" -DartifactId="sdk" -Dversion="1.0.88"
+
+mvn deploy:deploy-file -Dpackaging=aar  -Dfile=libwebrtc_1.0.88.aar -Durl="file://." -DgroupId="org.webrtc" -DartifactId="google-webrtc" -Dversion="1.0.88"
+
+
+cmd 执行 powershell有问题哦
+mvn deploy:deploy-file -Dpackaging=aar  -Dfile=libwebrtc_1.0.88.aar -Durl="file://C:\Users\user\.m2\repository" -DgroupId="org.webrtc" -DartifactId="google-webrtc" -Dversion="1.0.88"
+
+
+
+
+华为mlk
+https://developer.huawei.com/consumer/cn/doc/development/HMSCore-Examples-V5/sample-code-0000001050265470-V5
+https://developer.huawei.com/consumer/cn/doc/development/HMSCore-Guides-V5/image-segmentation-0000001050040109-V5

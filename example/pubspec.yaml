@@ -11,8 +11,8 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_background: ^1.0.0
-  web_socket_channel: ^1.1.0
-  random_string: ^1.1.0
+  web_socket_channel: ^2.1.0
+  random_string: ^2.2.0-nullsafety
   flutter_webrtc:
     path: ../
   # Required for MediaRecorder example
