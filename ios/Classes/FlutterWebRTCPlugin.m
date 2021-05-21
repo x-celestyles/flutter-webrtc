@@ -190,10 +190,7 @@
             [self.GPUVideoCamera changeBackGroundImage:backImage];
         } else {
             //关闭虚拟背景图片
-            NSString *close = [NSString stringWithFormat:@"%@",call.arguments[@"close"]];
-            if ([close isEqualToString:@"1"]) {
-                [self.GPUVideoCamera closeVirtualBackGround];
-            }
+            [self.GPUVideoCamera closeVirtualBackGround];
         }
     } else if ([@"closeScreenShareMedia" isEqualToString:call.method]) {
         //结束屏幕共享的通知

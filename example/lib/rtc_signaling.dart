@@ -207,14 +207,14 @@ class RTCSignaling {
   //改变虚拟背景图片(同时会开启虚拟背景，需要传一张png格式的图片)
   Future<void> changeVirtualBack() async {
     final constraints = <String, dynamic>{
-      'virtualBackground': 'back_groud2.png'
+      'virtualBackground': 'virtual_back1.png'
     };
     await navigator.mediaDevices.changeVirtualBackGround(constraints);
   }
 
   //关闭虚拟背景
   Future<void> closeVirtualBack() async {
-    final constraints = <String, dynamic>{'close': '1'};
+    final constraints = <String, dynamic>{'virtualBackground': ''};
     await navigator.mediaDevices.changeVirtualBackGround(constraints);
   }
 

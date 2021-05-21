@@ -125,7 +125,7 @@
         const size_t dstYStride = CVPixelBufferGetBytesPerRowOfPlane(outputPixelBuffer, 0);
         uint8_t* dstUV = CVPixelBufferGetBaseAddressOfPlane(outputPixelBuffer, 1);
         const size_t dstUVStride = CVPixelBufferGetBytesPerRowOfPlane(outputPixelBuffer, 1);
-        
+       
         I420ToNV12(i420Buffer.dataY,
                            i420Buffer.strideY,
                            i420Buffer.dataU,
