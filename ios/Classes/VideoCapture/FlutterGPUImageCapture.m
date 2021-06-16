@@ -91,6 +91,10 @@ typedef enum : NSUInteger {
     _backType = None;
 }
 
+- (void)image:(UIImage *)image didFinishSavingWithError:(NSError *)error contextInfo:(void *)contextInfo {
+    NSLog(@"图片保存完毕");
+}
+
 - (void)didOutPutSampleBuffer:(CMSampleBufferRef)sampleBuffer {
     if (_backType == BackGround || _backType == GaussianBlur) {
         //开启了虚拟背景的使用
@@ -98,27 +102,37 @@ typedef enum : NSUInteger {
         HW_TIME_BEGIN(total);
         
         UIImage *image = [UIImage convertPixBufferToImage:CMSampleBufferGetImageBuffer(sampleBuffer)];
+        UIImage *originalImage = [UIImage imageWithCGImage:[image CGImage]];
+        
         MLFrame *frame = [[MLFrame alloc] initWithImage:image];
         MLImageSegmentation *imgSeg = [self.imgSegAnalyzer analyseFrame:frame];
         UIImage *foregroundImage = [imgSeg getForeground];
+        
         if (_backType == GaussianBlur) {
             //如果当前是高斯模糊模式
-            UIImage *originalImage = [imgSeg getOriginal];
-            //将原图高斯化
-            GPUImageiOSBlurFilter *blur =  [[GPUImageiOSBlurFilter alloc] init];
-            blur.blurRadiusInPixels = 1.0;
-            GPUImagePicture *picture = [[GPUImagePicture alloc] initWithImage:originalImage];
-            [picture addTarget:blur];
-            [picture processImage];
-            //获取高斯后的图片
-            UIImage *blurImage =  blur.imageFromCurrentFramebuffer;
-            _currentImage = blur;
+            if(originalImage){
+                //将原图高斯化
+                
+                GPUImageGaussianBlurFilter *gaussianBlurFilter = [[GPUImageGaussianBlurFilter alloc] init];
+                    gaussianBlurFilter.blurRadiusInPixels = 50;//模糊程度
+                    [gaussianBlurFilter forceProcessingAtSize:CGSizeMake(720, 1280)];
+                    [gaussianBlurFilter useNextFrameForImageCapture];
+                    //获取数据源
+                    GPUImagePicture *stillImageSource = [[GPUImagePicture alloc]initWithImage:originalImage];
+                    //添加上滤镜
+                    [stillImageSource addTarget:gaussianBlurFilter];
+                    //开始渲染
+                    [stillImageSource processImage];
+                    //获取渲染后的图片
+                    UIImage *newImage = [gaussianBlurFilter imageFromCurrentFramebuffer];
+                _currentImage = newImage;
+            }
         }
+        
         //背景图
         if (foregroundImage && _currentImage) {
-            
             FlutterGPUImagePicture *input = [[FlutterGPUImagePicture alloc] initWithImage:foregroundImage outPutSize:CGSizeMake(720, 1280)];
-            
+
             FlutterGPUImagePicture *input1 = [[FlutterGPUImagePicture alloc] initWithImage:_currentImage outPutSize:CGSizeMake(720, 1280)];
             //混合前后两张图片
             GPUImageAlphaBlendFilter *filter = [[GPUImageAlphaBlendFilter alloc] init];
@@ -126,18 +140,19 @@ typedef enum : NSUInteger {
             //先混合背景图片
             [input1 addTarget:filter];
             [input1 processImage];
-            
+
             [filter useNextFrameForImageCapture];
             //再混合前景图片
             [input addTarget:filter];
             [input processImage];
             //获取混合的图片
            foregroundImage = filter.imageFromCurrentFramebuffer;
-            
+
            //添加美颜效果
             foregroundImage = [self beauteImage:foregroundImage];
         }
         
+//        foregroundImage = originalImage;
         HW_TIME_END(total);
         
         CVPixelBufferRef convertBuffer = [UIImage convertImageToPixBuffer:foregroundImage];
