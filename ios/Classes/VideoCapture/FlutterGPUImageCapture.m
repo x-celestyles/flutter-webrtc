@@ -14,6 +14,12 @@
 #import "UIImage+PixBuffer.h"
 
 
+typedef enum : NSUInteger {
+    None,//没有
+    GaussianBlur,//高斯模糊
+    BackGround,//背景图
+} FlutterGPUImageCaptureBackType;
+
 @interface FlutterGPUImageCapture ()<FlutterRTCVideoCameraDelegate>{
     
     double _tiem_pre;
@@ -23,8 +29,8 @@
 @property(nonatomic, strong) MLImageSegmentationAnalyzer *imgSegAnalyzer;
 /** imageName */
 @property (nonatomic, strong) UIImage *currentImage;
-/** 是否开启了虚拟背景墙的使用 */
-@property (nonatomic) BOOL isAllowUseVirturalBack;
+/** 背景模式 */
+@property (nonatomic) FlutterGPUImageCaptureBackType backType;
 @end
 
 @implementation FlutterGPUImageCapture
@@ -56,7 +62,7 @@
     [setting setExact:NO];
     [self.imgSegAnalyzer setImageSegmentationAnalyzer:setting];
     _currentImage = [UIImage imageNamed:@"virtual_back1.png"];
-    _isAllowUseVirturalBack = NO;
+    _backType = None;
 }
 
 - (FlutterRTCVideoCamera *)videoCamera {
@@ -68,19 +74,25 @@
 }
 
 - (void)changeBackGroundImage:(NSString *)imgName {
-    _isAllowUseVirturalBack = YES;
-    UIImage *image = [UIImage imageNamed:imgName];
-    if (image) {
-        _currentImage = image;
+    if ([imgName isEqualToString:@"blur"]) {
+        _backType = GaussianBlur;
+    } else {
+        _backType = BackGround;
+        NSData *data = [[NSData alloc] initWithBase64EncodedString:imgName options:NSDataBase64DecodingIgnoreUnknownCharacters];
+        UIImage *image = [UIImage imageWithData:data];
+        if (image) {
+            _currentImage = image;
+        }
     }
+    
 }
 
 - (void)closeVirtualBackGround {
-    _isAllowUseVirturalBack = NO;
+    _backType = None;
 }
 
 - (void)didOutPutSampleBuffer:(CMSampleBufferRef)sampleBuffer {
-    if (_isAllowUseVirturalBack) {
+    if (_backType == BackGround || _backType == GaussianBlur) {
         //开启了虚拟背景的使用
         //在这里添加背景墙
         HW_TIME_BEGIN(total);
@@ -89,6 +101,20 @@
         MLFrame *frame = [[MLFrame alloc] initWithImage:image];
         MLImageSegmentation *imgSeg = [self.imgSegAnalyzer analyseFrame:frame];
         UIImage *foregroundImage = [imgSeg getForeground];
+        if (_backType == GaussianBlur) {
+            //如果当前是高斯模糊模式
+            UIImage *originalImage = [imgSeg getOriginal];
+            //将原图高斯化
+            GPUImageiOSBlurFilter *blur =  [[GPUImageiOSBlurFilter alloc] init];
+            blur.blurRadiusInPixels = 1.0;
+            GPUImagePicture *picture = [[GPUImagePicture alloc] initWithImage:originalImage];
+            [picture addTarget:blur];
+            [picture processImage];
+            //获取高斯后的图片
+            UIImage *blurImage =  blur.imageFromCurrentFramebuffer;
+            _currentImage = blur;
+        }
+        //背景图
         if (foregroundImage && _currentImage) {
             
             FlutterGPUImagePicture *input = [[FlutterGPUImagePicture alloc] initWithImage:foregroundImage outPutSize:CGSizeMake(720, 1280)];
@@ -111,6 +137,7 @@
            //添加美颜效果
             foregroundImage = [self beauteImage:foregroundImage];
         }
+        
         HW_TIME_END(total);
         
         CVPixelBufferRef convertBuffer = [UIImage convertImageToPixBuffer:foregroundImage];
