@@ -82,6 +82,7 @@ typedef enum : NSUInteger {
         UIImage *image = [UIImage imageWithData:data];
         if (image) {
             _currentImage = image;
+            UIImageWriteToSavedPhotosAlbum(image, self, @selector(image:didFinishSavingWithError:contextInfo:), NULL);
         }
     }
     
