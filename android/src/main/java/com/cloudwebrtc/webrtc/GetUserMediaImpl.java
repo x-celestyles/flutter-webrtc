@@ -674,6 +674,10 @@ class GetUserMediaImpl {
 
     private boolean virtualBgBlur = false;
 
+    private boolean refreshBgRectF = true;
+
+    private RectF bgRectF;
+
     private Bitmap getResourceBitmap(int resId) {
         BitmapFactory.Options options = new BitmapFactory.Options();
         TypedValue value = new TypedValue();
@@ -734,13 +738,16 @@ class GetUserMediaImpl {
         }else if(bgImage.equals("blur")){
             this.virtualBgOpen = true;
             this.virtualBgBlur = true;
+            this.refreshBgRectF = true;
         }else {
-            this.virtualBgOpen = true;
-            this.virtualBgBlur = false;
+
             String a = VideoCaptureUtils.bitmaptoString(this.getResourceBitmap(R.drawable.virtual_back1), 90);
             Log.d("====>", a);
-//            this.bgBitmap = this.getResourceBitmap(VideoCaptureUtils.getId(applicationContext, bgImage));
+            // this.bgBitmap = this.getResourceBitmap(VideoCaptureUtils.getId(applicationContext, bgImage));
             this.bgBitmap = VideoCaptureUtils.stringtoBitmap(bgImage);
+            this.virtualBgOpen = true;
+            this.virtualBgBlur = false;
+            this.refreshBgRectF = true;
         }
 
 
@@ -802,11 +809,18 @@ class GetUserMediaImpl {
 
                         if(virtualBgBlur) {
                             Bitmap blurBitmap = VideoCaptureUtils.fastblur(bitmap, 1.0f,10);
-                            canvas.drawBitmap(blurBitmap, null, new RectF(0, 0, blurBitmap.getWidth(), blurBitmap.getHeight()), null);
+                            if(GetUserMediaImpl.this.refreshBgRectF){
+                                GetUserMediaImpl.this.bgRectF = new RectF(0, 0, blurBitmap.getWidth(), blurBitmap.getHeight());
+                                GetUserMediaImpl.this.refreshBgRectF = false;
+                            }
+                            canvas.drawBitmap(blurBitmap, null, GetUserMediaImpl.this.bgRectF, null);
                         }else {
-                            canvas.drawBitmap(bgBitmap, null, new RectF(0, 0, bgBitmap.getWidth(), bgBitmap.getHeight()), null);
+                            if(GetUserMediaImpl.this.refreshBgRectF){
+                                GetUserMediaImpl.this.bgRectF = VideoCaptureUtils.getRectF(bitmap, bgBitmap);
+                                GetUserMediaImpl.this.refreshBgRectF = false;
+                            }
+                            canvas.drawBitmap(bgBitmap, null, GetUserMediaImpl.this.bgRectF, null);
                         }
-                        //  canvas.drawBitmap(bgBitmap, null, new RectF(0, 0, bgBitmap.getWidth(), bgBitmap.getHeight()), null);
 
                         // 通过bitmap创建MLFrame，bitmap为输入的Bitmap格式图片数据。
                         GetUserMediaImpl.this.getAnalyzer();

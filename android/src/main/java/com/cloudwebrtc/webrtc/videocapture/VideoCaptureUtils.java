@@ -579,4 +579,32 @@ public class VideoCaptureUtils {
 
         return (bitmap);
     }
+
+    public static RectF getRectF(Bitmap bitmap, Bitmap bgBitmap){
+        float ratio = (float)bitmap.getHeight() / bitmap.getWidth();
+        float bgRatio = (float)bgBitmap.getHeight() / bgBitmap.getWidth();
+        RectF rectF;
+        if(bgRatio > ratio){
+            float index = 1.0f;
+            if(bgBitmap.getWidth() < bitmap.getWidth()){
+                index = (float)bitmap.getWidth() / bgBitmap.getWidth();
+            }else {
+                index = (float)bgBitmap.getWidth() / bitmap.getWidth();
+            }
+
+            rectF = new RectF(0, 0, bgBitmap.getWidth() * index, bgBitmap.getHeight()  * index);
+        }else if(bgRatio == ratio){
+            rectF = new RectF(0, 0, bgBitmap.getWidth(), bgBitmap.getHeight());
+        }else {
+            float index = 1.0f;
+            if(bgBitmap.getHeight() < bitmap.getHeight()){
+                index = (float)bitmap.getHeight() / bgBitmap.getHeight();
+            }else {
+                index = (float)bgBitmap.getHeight() / bitmap.getHeight();
+            }
+            float side = (bgBitmap.getWidth() - bgBitmap.getHeight()) / 2;
+            rectF = new RectF(0, 0, bgBitmap.getWidth()  * index, bgBitmap.getHeight() * index);
+        }
+        return rectF;
+    }
 }
