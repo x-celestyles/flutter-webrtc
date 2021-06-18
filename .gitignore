@@ -6,11 +6,11 @@ example/pubspec.lock
 pubspec.lock
 example/ios/Podfile.lock
 GeneratedPluginRegistrant.java
-example/android/.gradle
-example/android/gradle*
+# example/android/.gradle
+# example/android/gradle*
 WorkspaceSettings.xcsettings
 example/.flutter-plugins
-example/android/local.properties
+# example/android/local.properties
 .dart_tool/package_config.json
 android/.project
 example/ios/Runner/GeneratedPluginRegistrant.m
