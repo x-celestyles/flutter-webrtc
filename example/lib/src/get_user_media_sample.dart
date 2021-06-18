@@ -213,43 +213,37 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
             children: [
               Positioned.fill(
                   child: Center(
-                    child: Container(
-                      margin: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
-                      width: MediaQuery.of(context).size.width,
-                      height: MediaQuery.of(context).size.height,
-                      decoration: BoxDecoration(color: Colors.black54),
-                      child: RTCVideoView(_localRenderer, mirror: true),
-                    ),
-                  )
-              ),
-
+                child: Container(
+                  margin: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
+                  width: MediaQuery.of(context).size.width,
+                  height: MediaQuery.of(context).size.height,
+                  decoration: BoxDecoration(color: Colors.black54),
+                  child: RTCVideoView(_localRenderer, mirror: true),
+                ),
+              )),
               Positioned(
-                bottom: 100,
-                left: 50,
-                child: _virtualBg('close', (){
-                  navigator.mediaDevices.changeVirtualBackGround(
-                      <String, dynamic>{'virtualBackground': ''}
-                  );
-                })
-              ),
+                  bottom: 100,
+                  left: 50,
+                  child: _virtualBg('close', () {
+                    navigator.mediaDevices.changeVirtualBackGround(
+                        <String, dynamic>{'virtualBackground': ''});
+                  })),
               Positioned(
                   bottom: 100,
                   left: 150,
-                  child: _virtualBg('back1', (){
+                  child: _virtualBg('back1', () {
                     navigator.mediaDevices.changeVirtualBackGround(
-                        <String, dynamic>{'virtualBackground': 'virtual_back1.png'}
-                    );
-                  })
-              ),
+                        <String, dynamic>{'virtualBackground': 'blur'});
+                  })),
               Positioned(
                   bottom: 100,
                   left: 250,
-                  child: _virtualBg('back4', (){
-                    navigator.mediaDevices.changeVirtualBackGround(
-                        <String, dynamic>{'virtualBackground': 'virtual_back4.png'}
-                    );
-                  })
-              ),
+                  child: _virtualBg('back4', () {
+                    navigator.mediaDevices
+                        .changeVirtualBackGround(<String, dynamic>{
+                      'virtualBackground': 'virtual_back4.png'
+                    });
+                  })),
             ],
           );
         },
@@ -269,19 +263,22 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
   Widget _virtualBg(String txt, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
-        child: _buildBtn(txt,),
+      child: _buildBtn(
+        txt,
+      ),
     );
   }
-  Widget _buildBtn(String txt, {Color color = Colors.red}){
+
+  Widget _buildBtn(String txt, {Color color = Colors.red}) {
     return Container(
       width: 50.0,
       height: 50.0,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: color
-      ),
+      decoration: BoxDecoration(shape: BoxShape.circle, color: color),
       alignment: Alignment.center,
-      child: Text(txt, style: TextStyle(color: Colors.white),),
+      child: Text(
+        txt,
+        style: TextStyle(color: Colors.white),
+      ),
     );
   }
 }
