@@ -741,8 +741,6 @@ class GetUserMediaImpl {
             this.refreshBgRectF = true;
         }else {
 
-            String a = VideoCaptureUtils.bitmaptoString(this.getResourceBitmap(R.drawable.virtual_back1), 90);
-            Log.d("====>", a);
             // this.bgBitmap = this.getResourceBitmap(VideoCaptureUtils.getId(applicationContext, bgImage));
             this.bgBitmap = VideoCaptureUtils.stringtoBitmap(bgImage);
             this.virtualBgOpen = true;
