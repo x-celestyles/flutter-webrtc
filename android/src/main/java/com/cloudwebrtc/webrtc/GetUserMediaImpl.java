@@ -672,6 +672,12 @@ class GetUserMediaImpl {
 
     private boolean virtualBgOpen = false;
 
+    private boolean virtualBgBlur = false;
+
+    private boolean refreshBgRectF = true;
+
+    private RectF bgRectF;
+
     private Bitmap getResourceBitmap(int resId) {
         BitmapFactory.Options options = new BitmapFactory.Options();
         TypedValue value = new TypedValue();
@@ -720,6 +726,7 @@ class GetUserMediaImpl {
     public void setBgBitmap(String bgImage){
         if(bgImage == null || "".equals(bgImage)){
             virtualBgOpen = false;
+            this.virtualBgBlur = false;
             if(canvas != null){
                 canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
             }
@@ -728,9 +735,20 @@ class GetUserMediaImpl {
             }
             this.bgBitmap = null;*/
             return;
+        }else if(bgImage.equals("blur")){
+            this.virtualBgOpen = true;
+            this.virtualBgBlur = true;
+            this.refreshBgRectF = true;
+        }else {
+
+            // this.bgBitmap = this.getResourceBitmap(VideoCaptureUtils.getId(applicationContext, bgImage));
+            this.bgBitmap = VideoCaptureUtils.stringtoBitmap(bgImage);
+            this.virtualBgOpen = true;
+            this.virtualBgBlur = false;
+            this.refreshBgRectF = true;
         }
-        this.virtualBgOpen = true;
-        this.bgBitmap = this.getResourceBitmap(VideoCaptureUtils.getId(applicationContext, bgImage));
+
+
     }
 
     private VideoTrack getUserVideo(ConstraintsMap constraints) {
@@ -783,10 +801,24 @@ class GetUserMediaImpl {
             videoSource.setVideoFrameHandler(new VideoFrameHandler() {
                 @Override
                 public VideoFrame handle(VideoFrame videoFrame) {
-                    if (GetUserMediaImpl.this.virtualBgOpen && GetUserMediaImpl.this.bgBitmap != null) {
+                    if (GetUserMediaImpl.this.virtualBgOpen && (GetUserMediaImpl.this.bgBitmap != null || virtualBgBlur)) {
                         Bitmap bitmap = VideoCaptureUtils.ConvertI420ToARGB(videoFrame);
                         Canvas canvas = GetUserMediaImpl.this.getCanvas(bitmap.getWidth(), bitmap.getHeight());
-                        canvas.drawBitmap(bgBitmap, null, new RectF(0, 0, bgBitmap.getWidth(), bgBitmap.getHeight()), null);
+
+                        if(virtualBgBlur) {
+                            Bitmap blurBitmap = VideoCaptureUtils.fastblur(bitmap, 1.0f,10);
+                            if(GetUserMediaImpl.this.refreshBgRectF){
+                                GetUserMediaImpl.this.bgRectF = new RectF(0, 0, blurBitmap.getWidth(), blurBitmap.getHeight());
+                                GetUserMediaImpl.this.refreshBgRectF = false;
+                            }
+                            canvas.drawBitmap(blurBitmap, null, GetUserMediaImpl.this.bgRectF, null);
+                        }else {
+                            if(GetUserMediaImpl.this.refreshBgRectF){
+                                GetUserMediaImpl.this.bgRectF = VideoCaptureUtils.getRectF(bitmap, bgBitmap);
+                                GetUserMediaImpl.this.refreshBgRectF = false;
+                            }
+                            canvas.drawBitmap(bgBitmap, null, GetUserMediaImpl.this.bgRectF, null);
+                        }
 
                         // 通过bitmap创建MLFrame，bitmap为输入的Bitmap格式图片数据。
                         GetUserMediaImpl.this.getAnalyzer();
