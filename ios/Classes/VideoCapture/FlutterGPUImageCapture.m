@@ -82,7 +82,7 @@ typedef enum : NSUInteger {
         UIImage *image = [UIImage imageWithData:data];
         if (image) {
             _currentImage = image;
-            UIImageWriteToSavedPhotosAlbum(image, self, @selector(image:didFinishSavingWithError:contextInfo:), NULL);
+//            UIImageWriteToSavedPhotosAlbum(image, self, @selector(image:didFinishSavingWithError:contextInfo:), NULL);
         }
     }
     
@@ -153,7 +153,6 @@ typedef enum : NSUInteger {
             foregroundImage = [self beauteImage:foregroundImage];
         }
         
-//        foregroundImage = originalImage;
         HW_TIME_END(total);
         
         CVPixelBufferRef convertBuffer = [UIImage convertImageToPixBuffer:foregroundImage];
