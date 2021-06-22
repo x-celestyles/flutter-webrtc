@@ -1,4 +1,4 @@
-package com.cloudwebrtc.webrtc.videocapture;
+1090package com.cloudwebrtc.webrtc.videocapture;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -300,10 +300,25 @@ public class VideoCaptureUtils {
             byte[] bitmapArray;
             bitmapArray = Base64.decode(string, Base64.DEFAULT);
             bitmap = BitmapFactory.decodeByteArray(bitmapArray, 0, bitmapArray.length);
+            bitmap = mirrorBitmap(bitmap);
         } catch (Exception e) {
             e.printStackTrace();
         }
         return bitmap;
+    }
+
+    public static Bitmap mirrorBitmap(Bitmap bitmap) {
+        Matrix matrix = new Matrix();
+        matrix.preScale(-1.0f, 1.0f);
+        Bitmap newBitmap = Bitmap.createBitmap(bitmap, 0, 0,
+                bitmap.getWidth(), bitmap.getHeight(), matrix, false);
+        return newBitmap;
+    }
+
+    public static Bitmap createFlippedBitmap(Bitmap source, boolean xFlip, boolean yFlip) {
+        Matrix matrix = new Matrix();
+        matrix.postScale(xFlip ? -1 : 1, yFlip ? -1 : 1, source.getWidth() / 2f, source.getHeight() / 2f);
+        return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
     }
     
     

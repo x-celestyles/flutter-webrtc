@@ -801,7 +801,7 @@ class GetUserMediaImpl {
             videoSource.setVideoFrameHandler(new VideoFrameHandler() {
                 @Override
                 public VideoFrame handle(VideoFrame videoFrame) {
-                    if (GetUserMediaImpl.this.virtualBgOpen && GetUserMediaImpl.this.bgBitmap != null) {
+                    if (GetUserMediaImpl.this.virtualBgOpen && (GetUserMediaImpl.this.bgBitmap != null || virtualBgBlur)) {
                         Bitmap bitmap = VideoCaptureUtils.ConvertI420ToARGB(videoFrame);
                         Canvas canvas = GetUserMediaImpl.this.getCanvas(bitmap.getWidth(), bitmap.getHeight());
 
