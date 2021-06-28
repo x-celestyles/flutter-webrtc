@@ -223,6 +223,7 @@ const CGFloat kScrMaximumSupportedResolution = 640;
     
     
 //    NSLog(@"有视频数据过偶来");
+    NSLog(@"原生共享数据传递");
     [self.delegate capturer:self didCaptureVideoFrame:videoFrame];
 }
 
