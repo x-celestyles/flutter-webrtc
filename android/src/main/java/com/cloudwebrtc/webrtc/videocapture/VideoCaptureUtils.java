@@ -1,4 +1,4 @@
-1090package com.cloudwebrtc.webrtc.videocapture;
+package com.cloudwebrtc.webrtc.videocapture;
 
 import android.content.Context;
 import android.graphics.Bitmap;

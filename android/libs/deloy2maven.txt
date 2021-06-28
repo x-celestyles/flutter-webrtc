@@ -1,6 +1,8 @@
 https://webrtc.github.io/webrtc-org/release-notes/
 https://chromium.googlesource.com/external/webrtc/+/refs/heads/master/docs/release-notes.md
 此版本 M88 Release Notes 为基础编译
+新增VideoFrameHandler.java 修改videoSource.java
+
 mvn deploy:deploy-file -Dfile=libwebrtc_1.0.88.aar -Durl="file://." -DgroupId="org.webrtc" -DartifactId="sdk" -Dversion="1.0.88"
 
 mvn deploy:deploy-file -Dpackaging=aar  -Dfile=libwebrtc_1.0.88.aar -Durl="file://." -DgroupId="org.webrtc" -DartifactId="google-webrtc" -Dversion="1.0.88"
